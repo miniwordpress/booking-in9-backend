@@ -1,0 +1,22 @@
+services:
+  nestjs-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: development
+    volumes:
+      - .:/app  # Maps your local code to the container
+      - /app/node_modules  # Prevents overwriting node_modules inside the container
+    restart: unless-stopped
+    networks:
+      - nestjs-network
+
+networks:
+  nestjs-network:
+    driver: bridge
+
+volumes:
+  node_modules:
