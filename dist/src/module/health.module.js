@@ -10,12 +10,13 @@ exports.HealthModule = void 0;
 const common_1 = require("@nestjs/common");
 const terminus_1 = require("@nestjs/terminus");
 const health_controller_1 = require("../controller/health.controller");
+const axios_1 = require("@nestjs/axios");
 let HealthModule = class HealthModule {
 };
 exports.HealthModule = HealthModule;
 exports.HealthModule = HealthModule = __decorate([
     (0, common_1.Module)({
-        imports: [terminus_1.TerminusModule],
+        imports: [terminus_1.TerminusModule, axios_1.HttpModule],
         controllers: [health_controller_1.HealthController],
     })
 ], HealthModule);

@@ -26,6 +26,7 @@ let HealthController = class HealthController {
 exports.HealthController = HealthController;
 __decorate([
     (0, common_1.Get)(),
+    (0, terminus_1.HealthCheck)(),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)
