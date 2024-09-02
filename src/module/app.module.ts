@@ -1,8 +1,8 @@
-import { Module } from '@nestjs/common';
-import { AppController } from 'src/controller/app.controller';
-import { AppService } from 'src/service/app.service';
-import { ConfigModule } from '@nestjs/config';
-import { HealthModule } from './health.module';
+import { Module } from '@nestjs/common'
+import { AppController } from 'src/controller/app.controller'
+import { AppService } from 'src/service/app.service'
+import { ConfigModule } from '@nestjs/config'
+import { HealthModule } from './health.module'
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -13,4 +13,4 @@ import { HealthModule } from './health.module';
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule { }
