@@ -1,0 +1,5 @@
+enum TokenType {
+    RESET_PASSWORD = "RESET_PASSWORD",
+    ACCESS_TOKEN = "ACCESS_TOKEN",
+    REGISTER  = "REGISTER",
+}
