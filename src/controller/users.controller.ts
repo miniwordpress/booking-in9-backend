@@ -45,8 +45,42 @@ export class UsersController {
   }
 
   @Get('getUsersAccount')
-  async getAllUsers(): Promise<UsersAccount[]> {
-    return await this.userService.getAllUsers();
+  async getAllUsers(): Promise<UsersAccountResponse> {
+    var response = new UsersAccountResponse();
+    try{
+      const userData = await this.userService.getAllUsers();
+      let usersAccount = [];
+
+      usersAccount = userData.map((data) => {
+        let userAccountModel = new UserAccountModel();
+        userAccountModel.id = data.id;
+        userAccountModel.first_name = data.first_name;
+        userAccountModel.last_name = data.last_name;
+        userAccountModel.email = data.email;
+        userAccountModel.password = data.password;
+        userAccountModel.tel = data.tel;
+        userAccountModel.id_number = data.id_number;
+        userAccountModel.img = data.img;
+        userAccountModel.status = data.status;
+        userAccountModel.role = data.role;
+        userAccountModel.description = data.description;
+        userAccountModel.created_at = data.created_at;
+        userAccountModel.updated_at = data.updated_at;
+        return userAccountModel;
+      });
+
+      response.code = "200"; 
+      response.data = usersAccount;
+      response.message = "success";
+      response.cause = null;
+      return response;
+    } catch (error) {
+      response.code = error.code;
+      response.data = null;
+      response.message = error.message;
+      response.cause = error.cause;
+      return response;
+    }
   }
 
   @Get('getUserAccount')
@@ -81,7 +115,6 @@ export class UsersController {
       response.message = error.message;
       response.cause = error.cause;
       return response;
-    
     }
   }
 
