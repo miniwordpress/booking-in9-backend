@@ -1,4 +1,4 @@
-export class UserAccountResponse {
+export class UserAccountModel {
     id: bigint;
     first_name: string;
     last_name: string;
