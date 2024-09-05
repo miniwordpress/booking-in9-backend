@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { UsersAccount } from '../entity/users.account';
 import { CreateUserRequest } from '../dto/request/create.user.request';
 import generatePassword from 'src/utils/generate.password';
+import { UpdateUserRequest } from 'src/dto/request/update.user.request';
 // import { UserAccountResponse } from '../model/dto/response/user.account.response';
 
 @Injectable()
@@ -14,25 +15,52 @@ export class UsersService {
   ) {}
 
   async createUser(createUsersRequest: CreateUserRequest): Promise<UsersAccount> {
-    const newUser = this.usersAccountRepository.create(createUsersRequest);
-    const password = generatePassword();
-    
-    newUser.password = password;
-    newUser.created_at = new Date();
-    newUser.updated_at = new Date();
+    var userData = new UsersAccount();
+    userData.first_name = createUsersRequest.firstName;
+    userData.last_name = createUsersRequest.lastName;
+    userData.email = createUsersRequest.email;
+    userData.tel = createUsersRequest.tel;
+    userData.id_number = createUsersRequest.idNumber;
+    userData.img = createUsersRequest.img;
+    userData.status = createUsersRequest.status;
+    userData.role = createUsersRequest.role;
+    userData.description = createUsersRequest.description;
+    userData.password = generatePassword();
+    userData.created_at = new Date();
+    userData.updated_at = new Date();
 
-    await this.usersAccountRepository.save(newUser)
-    
+    const newUser = this.usersAccountRepository.create(userData);
     return newUser;
   }
 
-  getAllUsers(): Promise<UsersAccount[]> {
-    return this.usersAccountRepository.find();
+  async getAllUsers(): Promise<UsersAccount[]> {
+    return await this.usersAccountRepository.find();
   }
 
-  getUser(id: bigint): Promise<UsersAccount | null>{
-    return this.usersAccountRepository.findOneBy({id});
+  async getUser(id: bigint): Promise<UsersAccount | null>{
+    return await this.usersAccountRepository.findOneBy({id});
   }
 
+  async updateUser(
+    id: bigint,
+    updateUserRequest: UpdateUserRequest,
+  ): Promise<UsersAccount | null> {
+    const existingUser = await this.usersAccountRepository.findOneBy({ id });
+    updateUserRequest.firstName ? existingUser.first_name = updateUserRequest.firstName : existingUser.first_name;
+    updateUserRequest.lastName ? existingUser.last_name = updateUserRequest.lastName : existingUser.last_name;
+    updateUserRequest.email ? existingUser.email = updateUserRequest.email : existingUser.email;
+    updateUserRequest.password ? existingUser.password = updateUserRequest.password : existingUser.password;
+    updateUserRequest.tel ? existingUser.tel = updateUserRequest.tel : existingUser.tel;
+    updateUserRequest.img ? existingUser.img = updateUserRequest.img : existingUser.img;
+    updateUserRequest.status ? existingUser.status = updateUserRequest.status : existingUser.status;
+    updateUserRequest.role ? existingUser.role = updateUserRequest.role : existingUser.role;
+    existingUser.updated_at = new Date();
 
+    const updatedUser = await this.usersAccountRepository.save(existingUser);
+    return updatedUser;
+  }
+
+  async deleteUser(id: bigint): Promise<void> {
+    await this.usersAccountRepository.delete(id.toString());
+  }
 }

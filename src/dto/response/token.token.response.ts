@@ -1,9 +1,9 @@
 export class TokenResponse {
     id: bigint;
     token: string;
-    user_id: bigint;
+    userId: bigint;
     type: string;
-    expire_at: Date;
-    created_at: Date;
-    used_at: Date;
+    expireAt: Date;
+    createdAt: Date;
+    usedAt: Date;
  }
