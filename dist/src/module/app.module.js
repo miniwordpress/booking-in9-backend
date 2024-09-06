@@ -12,6 +12,7 @@ const app_controller_1 = require("../controller/app.controller");
 const app_service_1 = require("../service/app.service");
 const config_1 = require("@nestjs/config");
 const health_module_1 = require("./health.module");
+const mockup_module_1 = require("./mockup.module");
 const users_service_1 = require("../service/users.service");
 const users_controller_1 = require("../controller/users.controller");
 const typeorm_1 = require("@nestjs/typeorm");
@@ -38,7 +39,8 @@ exports.AppModule = AppModule = __decorate([
                 synchronize: true,
             }), typeorm_1.TypeOrmModule.forFeature([users_account_1.UsersAccount, token_1.Token]),
             axios_1.HttpModule,
-            health_module_1.HealthModule
+            health_module_1.HealthModule,
+            mockup_module_1.MockUpModule
         ],
         controllers: [app_controller_1.AppController, users_controller_1.UsersController],
         providers: [app_service_1.AppService, users_service_1.UsersService],

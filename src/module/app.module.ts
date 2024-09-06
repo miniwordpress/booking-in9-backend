@@ -3,6 +3,7 @@ import { AppController } from 'src/controller/app.controller'
 import { AppService } from 'src/service/app.service'
 import { ConfigModule } from '@nestjs/config'
 import { HealthModule } from './health.module'
+import { MockUpModule } from './mockup.module'
 import { UsersService } from 'src/service/users.service'
 import { UsersController } from 'src/controller/users.controller'
 import { TypeOrmModule } from '@nestjs/typeorm'
@@ -25,7 +26,8 @@ import { Token } from 'src/entity/token'
       synchronize: true,
     }), TypeOrmModule.forFeature([UsersAccount, Token]),
     HttpModule,
-    HealthModule
+    HealthModule,
+    MockUpModule
   ],
   controllers: [AppController, UsersController],
   providers: [AppService, UsersService],
