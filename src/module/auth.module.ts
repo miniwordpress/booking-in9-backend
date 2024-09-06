@@ -9,9 +9,9 @@ import { AuthController } from 'src/controller/auth.controller';
     UsersModule,
     JwtModule.register({
       global: true,
-      secret: configService.get<string>('JWT_SECRET'),
+      //secret: configService.get<string>('JWT_SECRET'),
       signOptions: {
-        expiresIn: `${configService.get<string>('JWT_EXPIRES_IN')}s`,
+        //expiresIn: `${configService.get<string>('JWT_EXPIRES_IN')}s`,
       },
     }),
   ],
