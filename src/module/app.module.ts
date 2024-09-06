@@ -8,28 +8,19 @@ import { UsersService } from 'src/service/users.service'
 import { UsersController } from 'src/controller/users.controller'
 import { TypeOrmModule } from '@nestjs/typeorm'
 import { HttpModule } from '@nestjs/axios'
-import { UsersAccount } from 'src/entity/users.account'
-import { Token } from 'src/entity/token'
+import { UsersModule } from './users.module'
+
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
     }),
-    TypeOrmModule.forRoot({
-      type: 'postgres',
-      host: 'localhost',
-      port: 5432,
-      username: 'admin',
-      password: 'passw0rdIn9',
-      database: 'postgres',
-      entities: [UsersAccount, Token],
-      synchronize: true,
-    }), TypeOrmModule.forFeature([UsersAccount, Token]),
     HttpModule,
     HealthModule,
-    MockUpModule
+    MockUpModule,
+    UsersModule
   ],
-  controllers: [AppController, UsersController],
-  providers: [AppService, UsersService],
+  controllers: [AppController],
+  providers: [AppService],
 })
 export class AppModule { }

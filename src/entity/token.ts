@@ -10,7 +10,7 @@ export class Token {
   token: string;
 
   @OneToOne(type => UsersAccount, usersAccount => usersAccount.id)
-  users_id: UsersAccount[];
+  users_id: UsersAccount;
 
   @Column({ length: 100, nullable: false })
   type: TokenType; 
