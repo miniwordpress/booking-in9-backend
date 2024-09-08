@@ -13,6 +13,6 @@ async function bootstrap() {
   })
   const configService = app.get(ConfigService)
   const port = configService.get<number>('PORT')
-  await app.listen(3000)
+  await app.listen(4000)
 }
 bootstrap()

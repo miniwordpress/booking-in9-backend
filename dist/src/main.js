@@ -14,7 +14,7 @@ async function bootstrap() {
     });
     const configService = app.get(config_1.ConfigService);
     const port = configService.get('PORT');
-    await app.listen(3000);
+    await app.listen(4000);
 }
 bootstrap();
 //# sourceMappingURL=main.js.map
