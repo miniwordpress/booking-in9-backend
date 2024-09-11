@@ -7,17 +7,7 @@ import { UsersService } from 'src/service/users.service';
 
 @Module({
   imports: [
-    TypeOrmModule.forRoot({
-        type: 'postgres',
-        host: 'localhost',
-        port: 5432,
-        username: 'admin',
-        password: 'passw0rdIn9',
-        database: 'postgres',
-        entities: [UsersAccount],
-        synchronize: true,
-      }), TypeOrmModule.forFeature([UsersAccount]),
-      HttpModule,
+    TypeOrmModule.forFeature([UsersAccount]),
   ],
   controllers: [UsersController],
   providers: [UsersService],

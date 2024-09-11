@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Query, Delete, Param, Body, Patch } from '@nestjs/common';
+import { Controller, Get, Post, Query, Delete, HttpStatus, Body, Patch, HttpException } from '@nestjs/common';
 import { UsersService } from '../service/users.service';
 import { CreateUserRequest } from '../dto/request/create.user.request';
 import { UsersAccountResponse } from '../dto/response/user.account.response';
@@ -14,11 +14,12 @@ export class UsersController {
     var response = new UsersAccountResponse();
 
     if (createUserDto == null) {
-      response.code = "200"; 
+      response.code = HttpStatus.BAD_REQUEST.toString(); 
       response.data = null;
       response.message = `createUserDto null`;
       response.cause = null;
-      return response;
+      
+      throw new HttpException(response, HttpStatus.BAD_REQUEST);
     }
 
     try {
@@ -38,7 +39,7 @@ export class UsersController {
       userAccountModel.createdAt = userData.created_at;
       userAccountModel.updatedAt = userData.updated_at;
 
-      response.code = "201"; 
+      response.code = HttpStatus.CREATED.toString(); 
       response.data = [userAccountModel];
       response.message = "Create user success";
       response.cause = null;
@@ -47,7 +48,8 @@ export class UsersController {
       response.code = error.code;
       response.data = null;
       response.message = error.message;
-      response.cause = error.cause;
+      response.cause = error.cause ?? null;
+
       return response;
     }
   }
@@ -78,7 +80,7 @@ export class UsersController {
         usersAccount.push(userAccountModel);
       });
 
-      response.code = "200"; 
+      response.code = HttpStatus.OK.toString(); 
       response.data = usersAccount;
       response.message = "Get all users success";
       response.cause = null;
@@ -88,6 +90,8 @@ export class UsersController {
       response.data = null;
       response.message = error.message;
       response.cause = error.cause;
+      response.cause = error.cause ?? null;
+
       return response;
     }
   }
@@ -97,18 +101,19 @@ export class UsersController {
     var response = new UsersAccountResponse();
 
     if (id == null || id == undefined) {
-      response.code = "200"; 
+      response.code = HttpStatus.BAD_REQUEST.toString(); 
       response.data = null;
       response.message = `id null or undefined`;
       response.cause = null;
-      return response;
+
+      throw new HttpException(response, HttpStatus.BAD_REQUEST);
     }
 
     try{
       const userData = await this.userService.getUser(BigInt(id));
       
       if (userData == null || userData == undefined) {
-        response.code = "200"; 
+        response.code = HttpStatus.OK.toString(); 
         response.data = null;
         response.message = `User id:${id} not found`;
         response.cause = null;
@@ -129,7 +134,7 @@ export class UsersController {
         userAccountModel.createdAt = userData.created_at;
         userAccountModel.updatedAt = userData.updated_at;
       
-        response.code = "200"; 
+        response.code = HttpStatus.OK.toString(); 
         response.data = [userAccountModel];
         response.message = `Get user id:${id} success`;
         response.cause = null;
@@ -139,7 +144,8 @@ export class UsersController {
       response.code = error.code;
       response.data = null;
       response.message = error.message;
-      response.cause = error.cause;
+      response.cause = error.cause ?? null;
+
       return response;
     }
   }
@@ -149,18 +155,19 @@ export class UsersController {
     var response = new UsersAccountResponse();
 
     if (updateUserDto == null) {
-      response.code = "200"; 
+      response.code = HttpStatus.BAD_REQUEST.toString(); 
       response.data = null;
       response.message = `updateUserDto null`;
       response.cause = null;
-      return response;
+
+      throw new HttpException(response, HttpStatus.BAD_REQUEST);
     }
 
     try{
       const userData = await this.userService.updateUser(updateUserDto.id, updateUserDto);
 
       if (userData == null || userData == undefined) {
-        response.code = "200"; 
+        response.code = HttpStatus.OK.toString(); 
         response.data = null;
         response.message = `User id:${updateUserDto.id} not found`;
         response.cause = null;
@@ -181,7 +188,7 @@ export class UsersController {
         userAccountModel.createdAt = userData.created_at;
         userAccountModel.updatedAt = userData.updated_at;
 
-        response.code = "200"; 
+        response.code = HttpStatus.OK.toString(); 
         response.data = [userAccountModel];
         response.message = "Success update user account";
         response.cause = null;
@@ -191,7 +198,8 @@ export class UsersController {
       response.code = error.code;
       response.data = null;
       response.message = error.message;
-      response.cause = error.cause;
+      response.cause = error.cause ?? null;
+
       return response;
     }
   }
@@ -201,24 +209,25 @@ export class UsersController {
     var response = new UsersAccountResponse();
 
     if (id == null || id == undefined) {
-      response.code = "200"; 
+      response.code = HttpStatus.BAD_REQUEST.toString(); 
       response.data = null;
       response.message = `id null or undefined`;
       response.cause = null;
-      return response;
+      
+     throw new HttpException(response, HttpStatus.BAD_REQUEST);
     }
     
     try{
       const userData = await this.userService.deleteUser(BigInt(id));
 
       if (userData == null || userData == undefined) {
-        response.code = "200"; 
+        response.code = HttpStatus.OK.toString(); 
         response.data = null;
         response.message = `User id:${id} not found`;
         response.cause = null;
         return response;
       } else {
-        response.code = "200"; 
+        response.code = HttpStatus.OK.toString(); 
         response.data = null;
         response.message = "Success delete user account";
         response.cause = null;
@@ -228,7 +237,8 @@ export class UsersController {
       response.code = error.code;
       response.data = null;
       response.message = error.message;
-      response.cause = error.cause;
+      response.cause = error.cause ?? null;
+
       return response;
     }
   }

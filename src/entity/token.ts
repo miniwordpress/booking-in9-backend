@@ -1,5 +1,6 @@
-import { Entity, Column, PrimaryGeneratedColumn, OneToOne } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, OneToOne, JoinColumn } from 'typeorm';
 import { UsersAccount } from './users.account';
+import { TokenType } from '../enum/token.type';
 
 @Entity()
 export class Token {
@@ -9,7 +10,8 @@ export class Token {
   @Column({ length: 255, nullable: false })
   token: string;
 
-  @OneToOne(type => UsersAccount, usersAccount => usersAccount.id)
+  @OneToOne(() => UsersAccount, usersAccount => usersAccount.id)
+  @JoinColumn({ name: 'users_id' })
   users_id: UsersAccount;
 
   @Column({ length: 100, nullable: false })

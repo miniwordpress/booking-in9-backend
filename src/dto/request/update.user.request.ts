@@ -2,7 +2,7 @@ export class UpdateUserRequest {
     id: bigint;
     firstName?: string;
     lastName?: string;
-    email: string;
+    email?: string;
     password?: string;
     tel?: string;
     img?: string;
