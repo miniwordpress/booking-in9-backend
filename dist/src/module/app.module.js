@@ -12,6 +12,13 @@ const app_controller_1 = require("../controller/app.controller");
 const app_service_1 = require("../service/app.service");
 const config_1 = require("@nestjs/config");
 const health_module_1 = require("./health.module");
+const mockup_module_1 = require("./mockup.module");
+const axios_1 = require("@nestjs/axios");
+const users_module_1 = require("./users.module");
+const auth_module_1 = require("./auth.module");
+const typeorm_1 = require("@nestjs/typeorm");
+const users_account_1 = require("../entity/users.account");
+const token_1 = require("../entity/token");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -21,7 +28,21 @@ exports.AppModule = AppModule = __decorate([
             config_1.ConfigModule.forRoot({
                 isGlobal: true,
             }),
-            health_module_1.HealthModule
+            typeorm_1.TypeOrmModule.forRoot({
+                type: 'postgres',
+                host: 'localhost',
+                port: 5432,
+                username: 'admin',
+                password: 'passw0rdIn9',
+                database: 'postgres',
+                entities: [users_account_1.UsersAccount, token_1.Token],
+                synchronize: true,
+            }),
+            axios_1.HttpModule,
+            health_module_1.HealthModule,
+            mockup_module_1.MockUpModule,
+            users_module_1.UsersModule,
+            auth_module_1.AuthModule,
         ],
         controllers: [app_controller_1.AppController],
         providers: [app_service_1.AppService],
