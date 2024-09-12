@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common'
+import { MiddlewareConsumer, Module, NestModule, RequestMethod } from '@nestjs/common'
 import { AppController } from 'src/controller/app.controller'
 import { AppService } from 'src/service/app.service'
 import { ConfigModule } from '@nestjs/config'
@@ -10,6 +10,7 @@ import { AuthModule } from './auth.module'
 import { TypeOrmModule } from '@nestjs/typeorm'
 import { UsersAccount } from 'src/entity/users.account'
 import { Token } from 'src/entity/token'
+import { OAuthMiddleware } from '../middleware/oauth.middleware'
 
 @Module({
   imports: [
@@ -35,4 +36,11 @@ import { Token } from 'src/entity/token'
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule { }
+
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(OAuthMiddleware)
+      .forRoutes({ path: '*', method: RequestMethod.ALL });
+  }
+}
