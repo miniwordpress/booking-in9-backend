@@ -4,7 +4,7 @@ import { Body, Controller, Get, HttpCode, HttpException, HttpStatus, Post, Query
   import { AuthService } from '../service/auth.service';
 import { TokenResponse } from 'src/dto/response/token.response';
 import { TokenModel } from 'src/dto/models/token.model';
-import * as bcrypt from 'bcryptjs';
+//import * as bcrypt from 'bcryptjs';
 
   
   @Controller('auth')
