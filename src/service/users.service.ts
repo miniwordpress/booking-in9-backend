@@ -5,13 +5,15 @@ import { UsersAccount } from '../entity/users.account';
 import { CreateUserRequest } from '../dto/request/create.user.request';
 import generatePassword from 'src/utils/generate.password';
 import { UpdateUserRequest } from 'src/dto/request/update.user.request';
-// import { UserAccountResponse } from '../model/dto/response/user.account.response';
+import { Token } from 'src/entity/token';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(UsersAccount)
     private usersAccountRepository: Repository<UsersAccount>,
+    @InjectRepository(Token)
+    private tokenRepository: Repository<Token>,
   ) {}
 
   async createUser(createUsersRequest: CreateUserRequest): Promise<UsersAccount> {
@@ -29,8 +31,11 @@ export class UsersService {
     userData.created_at = new Date();
     userData.updated_at = new Date();
 
-    const newUser = this.usersAccountRepository.create(userData);
-    return newUser;
+    try {
+      return await this.usersAccountRepository.save(userData);
+    } catch (error) {
+      throw error;
+    }
   }
 
   async getAllUsers(): Promise<UsersAccount[]> {
@@ -59,8 +64,19 @@ export class UsersService {
     const updatedUser = await this.usersAccountRepository.save(existingUser);
     return updatedUser;
   }
-
+ห
   async deleteUser(id: bigint): Promise<void> {
-    await this.usersAccountRepository.delete(id.toString());
+    try {
+      const userAccount = await this.usersAccountRepository.findOne({ where: { id } });
+
+      if (!userAccount) {
+        throw new Error('User account not found');
+      }
+
+      await this.tokenRepository.delete({ users_id: userAccount });
+      await this.usersAccountRepository.delete(id.toString());
+    } catch (error) {
+      throw error;
+    }
   }
 }

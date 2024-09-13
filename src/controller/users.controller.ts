@@ -218,21 +218,13 @@ export class UsersController {
     }
     
     try{
-      const userData = await this.userService.deleteUser(BigInt(id));
+      await this.userService.deleteUser(BigInt(id));
 
-      if (userData == null || userData == undefined) {
-        response.code = HttpStatus.OK.toString(); 
-        response.data = null;
-        response.message = `User id:${id} not found`;
-        response.cause = null;
-        return response;
-      } else {
-        response.code = HttpStatus.OK.toString(); 
-        response.data = null;
-        response.message = "Success delete user account";
-        response.cause = null;
-        return response;
-      }
+      response.code = HttpStatus.OK.toString(); 
+      response.data = null;
+      response.message = "Success delete user account";
+      response.cause = null;
+      return response;
     } catch (error) {
       response.code = error.code;
       response.data = null;
