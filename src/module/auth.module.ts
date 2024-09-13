@@ -6,6 +6,7 @@ import { AuthController } from 'src/controller/auth.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Token } from 'src/entity/token';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { UsersAccount } from 'src/entity/users.account';
 
 @Module({
   imports: [
@@ -21,7 +22,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
         },
       }),
     }),
-    TypeOrmModule.forFeature([Token]),
+    TypeOrmModule.forFeature([Token, UsersAccount]),
   ],
   providers: [AuthService],
   controllers: [AuthController],

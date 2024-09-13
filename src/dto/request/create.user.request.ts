@@ -1,4 +1,5 @@
 import { IsNotEmpty, IsDate} from 'class-validator';
+import { isEmpty } from 'rxjs';
 
 export class CreateUserRequest {
     id?: bigint;
@@ -19,7 +20,7 @@ export class CreateUserRequest {
 
     @IsNotEmpty()
     idNumber: string;
-
+    
     img?: string;
 
     @IsNotEmpty()

@@ -10,6 +10,7 @@ import { TokenType } from '../enum/token.type';
 
 @Injectable()
 export class AuthService {
+  usersService: any;
   constructor(
     //private usersService: UsersService,
     private jwtService: JwtService,
@@ -45,18 +46,17 @@ export class AuthService {
     return tokenString;
   }
 
-//TODO: UsersService auth
-//   async signIn(
-//     username: string,
-//     pass: string,
-//   ): Promise<{ access_token: string }> {
-//     const user = await this.usersService.findOne(username);
-//     if (user?.password !== pass) {
-//       throw new UnauthorizedException();
-//     }
-//     const payload = { sub: user.userId, username: user.username };
-//     return {
-//       access_token: await this.jwtService.signAsync(payload),
-//     };
-//   }
+  async signIn(
+    email: string,
+    password: string,
+  ): Promise<{ access_token: string }> {
+    const user = await this.usersService.findOne(email);
+    if (user?.password !== password) {
+      throw new UnauthorizedException();
+    }
+    const payload = { sub: user.userId, username: user.username };
+    return {
+      access_token: await this.jwtService.signAsync(payload),
+    };
+  }
 }

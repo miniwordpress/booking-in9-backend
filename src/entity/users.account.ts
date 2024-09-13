@@ -1,8 +1,10 @@
-import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, OneToOne } from 'typeorm';
+import { Token } from './token';
 
 @Entity()
 export class UsersAccount {
   @PrimaryGeneratedColumn()
+  @OneToOne(() => Token, token => token.users_id)
   id: bigint;
 
   @Column({ length: 100})
@@ -23,7 +25,7 @@ export class UsersAccount {
   @Column({length: 50})
   id_number: string;
 
-  @Column({length: 255})
+  @Column({length: 255, nullable: true})
   img: string;
 
   @Column({length: 50})
@@ -32,13 +34,13 @@ export class UsersAccount {
   @Column({length: 20})
   role: UsersRole;
 
-  @Column({nullable: false})
+  @Column({nullable: true})
   description: string;
 
   @Column()
   created_at: Date;
 
-  @Column({nullable: false})
+  @Column({nullable: true})
   updated_at: Date;
 }
 
