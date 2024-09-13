@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable, NestMiddleware, UnauthorizedException } from '@nestjs/common';
 import { Request, Response, NextFunction, } from 'express';
-import { Controller, Get, Req } from '@nestjs/common';
+//import { Controller, Get, Req } from '@nestjs/common';
 
 
 
@@ -11,7 +11,6 @@ export class OAuthMiddleware implements NestMiddleware {
     const authHeader = req.headers['authorization'];
 
     // const languages = acceptLanguage?.split(',').map(lang => lang.split(';')[0]) || [];
-
     // if (languages.includes('th')){
     //   return ('สวัสดี นี้คือภาษาไทย');
     // } else {
