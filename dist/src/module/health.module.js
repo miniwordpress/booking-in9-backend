@@ -11,12 +11,9 @@ const common_1 = require("@nestjs/common");
 const terminus_1 = require("@nestjs/terminus");
 const health_controller_1 = require("../controller/health.controller");
 const axios_1 = require("@nestjs/axios");
-const middleware_1 = require("../middleware/middleware");
 let HealthModule = class HealthModule {
     configure(consumer) {
-        consumer
-            .apply(middleware_1.LoggerMiddleware)
-            .forRoutes('*');
+        consumer;
     }
 };
 exports.HealthModule = HealthModule;

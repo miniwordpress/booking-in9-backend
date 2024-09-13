@@ -12,7 +12,13 @@ const app_controller_1 = require("../controller/app.controller");
 const app_service_1 = require("../service/app.service");
 const config_1 = require("@nestjs/config");
 const health_module_1 = require("./health.module");
+const oauth_middleware_1 = require("../middleware/oauth.middleware");
 let AppModule = class AppModule {
+    configure(consumer) {
+        consumer
+            .apply(oauth_middleware_1.OAuthMiddleware)
+            .forRoutes({ path: '*', method: common_1.RequestMethod.ALL });
+    }
 };
 exports.AppModule = AppModule;
 exports.AppModule = AppModule = __decorate([

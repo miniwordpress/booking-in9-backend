@@ -1,7 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './module/app.module';
 import { ConfigService } from '@nestjs/config';
-import { OAuthMiddleware } from './service/oauth.middleware.service';
+import { OAuthMiddleware } from './middleware/oauth.middleware';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
