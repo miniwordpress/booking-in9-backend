@@ -10,14 +10,6 @@ export class OAuthMiddleware implements NestMiddleware {
     const acceptLanguage = req.headers['accept-language'];
     const authHeader = req.headers['authorization'];
 
-    // const languages = acceptLanguage?.split(',').map(lang => lang.split(';')[0]) || [];
-    // if (languages.includes('th')){
-    //   return ('สวัสดี นี้คือภาษาไทย');
-    // } else {
-    //   return ('Hello this is an English message')
-    // }
-  
-    // next();
 
     if (!acceptLanguage) {
       throw new BadRequestException('Invalid Accept-Language header');
