@@ -10,9 +10,17 @@ import { AuthModule } from './auth.module'
 import { TypeOrmModule } from '@nestjs/typeorm'
 import { UsersAccount } from 'src/entity/users.account'
 import { Token } from 'src/entity/token'
+import { MailerModule } from '@nestjs-modules/mailer'
 
 @Module({
   imports: [
+    MailerModule.forRoot({
+      transport: {
+        host: 'localhost',
+        port: 1025,
+        secure: false,
+      }
+    }),
     ConfigModule.forRoot({
       isGlobal: true,
     }),
@@ -25,7 +33,7 @@ import { Token } from 'src/entity/token'
       database: 'postgres',
       entities: [UsersAccount, Token],
       synchronize: true,
-    }), 
+    }),
     UsersModule,
     HttpModule,
     HealthModule,
