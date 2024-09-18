@@ -11,18 +11,33 @@ services:
       POSTGRES_PASSWORD: passw0rdIn9
     volumes:
       - local_pgdata:/var/lib/postgresql/data
+    networks:
+      - in-nine
   pgadmin:
     image: dpage/pgadmin4
     container_name: pgadmin4_container
     restart: always
     ports:
       - "8888:80"
+    networks:
+      - in-nine
     environment:
       PGADMIN_DEFAULT_EMAIL: postgresql@domain-name.com
       PGADMIN_DEFAULT_PASSWORD: postgres
     volumes:
       - pgadmin-data:/var/lib/pgadmin
+  mailpit:
+    image: "axllent/mailpit:v1.6"
+    container_name: ptn-mailpit
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+    networks:
+      - in-nine
 
 volumes:
   local_pgdata:
   pgadmin-data:
+
+networks:
+  in-nine:
