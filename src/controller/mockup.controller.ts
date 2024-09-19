@@ -2,10 +2,12 @@ import { Body, Controller, Get, Post, Res, HttpStatus, HttpException } from '@ne
 import { loginRequest } from 'src/dto/mock/request/loginRequest'
 import { loginResponse } from 'src/dto/mock/response/loginResponse'
 import { Response } from 'express'
+import { mailDto } from 'src/dto/email/mailDto'
+import { MockUpService } from 'src/service/mockup.service'
 
 @Controller('mock')
 export class MockUpController {
-  constructor() { }
+  constructor(private readonly mockUpService: MockUpService) { }
 
   @Post('login')
   check(@Body() loginDto: loginRequest, @Res() res: Response): Response<loginResponse> {
@@ -16,5 +18,10 @@ export class MockUpController {
     } else {
       throw new HttpException('UNAUTHORIZED', HttpStatus.UNAUTHORIZED)
     }
+  }
+
+  @Post("mail")
+  postMail(@Body() mailDto: mailDto, @Res() res: Response) {
+    return this.mockUpService.postMail(mailDto, res)
   }
 }
