@@ -4,7 +4,6 @@ import { Token } from './token';
 @Entity()
 export class UsersAccount {
   @PrimaryGeneratedColumn()
-  @OneToOne(() => Token, token => token.users_id)
   id: bigint;
 
   @Column({ length: 100})
@@ -16,7 +15,7 @@ export class UsersAccount {
   @Column({ length: 100})
   email: string; 
 
-  @Column({ length: 255})
+  @Column({ type: 'text'})
   password: string;
 
   @Column({length: 20})
@@ -25,7 +24,7 @@ export class UsersAccount {
   @Column({length: 50})
   id_number: string;
 
-  @Column({length: 255, nullable: true})
+  @Column({type: 'text', nullable: true})
   img: string;
 
   @Column({length: 50})
@@ -42,6 +41,7 @@ export class UsersAccount {
 
   @Column({nullable: true})
   updated_at: Date;
+
+  @OneToOne(type => Token, token => token.users_id, {nullable: true})
+  token?: Token;
 }
-
-
