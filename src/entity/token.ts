@@ -7,7 +7,7 @@ export class Token {
   @PrimaryGeneratedColumn()
   id: bigint;
 
-  @Column({ length: 255, nullable: false })
+  @Column({ type: 'text', nullable: false })
   token: string;
 
   @OneToOne(() => UsersAccount, usersAccount => usersAccount.id)
@@ -19,6 +19,9 @@ export class Token {
 
   @Column({nullable: false})
   expire_at: Date;
+
+  @Column({nullable: true})
+  refresh_time: Date;
 
   @Column({nullable: false})
   created_at: Date;

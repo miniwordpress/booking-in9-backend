@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common'
 import { AppController } from 'src/controller/app.controller'
 import { AppService } from 'src/service/app.service'
-import { ConfigModule } from '@nestjs/config'
+import { ConfigModule, ConfigService } from '@nestjs/config'
 import { HealthModule } from './health.module'
 import { MockUpModule } from './mockup.module'
 import { HttpModule } from '@nestjs/axios'
@@ -23,6 +23,7 @@ import { MailerModule } from '@nestjs-modules/mailer'
     }),
     ConfigModule.forRoot({
       isGlobal: true,
+      envFilePath: '.env',
     }),
     TypeOrmModule.forRoot({
       type: 'postgres',

@@ -1,15 +1,17 @@
-import { Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { UsersAccount } from '../entity/users.account';
 import { CreateUserRequest } from '../dto/request/create.user.request';
-import generatePassword from 'src/utils/generate.password';
+import encryptedPassword from '../utils/encrypted.password';
 import { UpdateUserRequest } from 'src/dto/request/update.user.request';
 import { Token } from 'src/entity/token';
+import { AuthService } from './auth.service';
 
 @Injectable()
 export class UsersService {
   constructor(
+    private readonly authService: AuthService,
     @InjectRepository(UsersAccount)
     private usersAccountRepository: Repository<UsersAccount>,
     @InjectRepository(Token)
@@ -27,7 +29,7 @@ export class UsersService {
     userData.status = createUsersRequest.status;
     userData.role = createUsersRequest.role;
     userData.description = createUsersRequest.description;
-    userData.password = generatePassword();
+    userData.password = encryptedPassword(this.generatePassword());
     userData.created_at = new Date();
     userData.updated_at = new Date();
 
@@ -35,7 +37,14 @@ export class UsersService {
       return await this.usersAccountRepository.save(userData);
     } catch (error) {
       throw error;
+    } finally {
+      await this.authService.generateToken(userData.id);
     }
+  }
+
+  async verifyRegisterData(email: string): Promise<void> {
+    //Todo: verifyRegisterData
+    return;
   }
 
   async getAllUsers(): Promise<UsersAccount[]> {
@@ -78,5 +87,16 @@ export class UsersService {
     } catch (error) {
       throw error;
     }
+  }
+
+  generatePassword(): string {
+    const length = 10;
+    const charset = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()';
+    let passwordValue = '';
+    for (let i = 0; i < length; i++) {
+      const at = Math.floor(Math.random() * charset.length);
+      passwordValue += charset.charAt(at);
+    }
+    return passwordValue;
   }
 }
