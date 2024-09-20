@@ -234,4 +234,35 @@ export class UsersController {
       return response;
     }
   }
+
+  @Post("sendVerifyLinkRegister")
+  async sendVerifyLinkRegister(@Query('userId') userId: bigint, @Query('language') language: string): Promise<UsersAccountResponse> {
+    var response = new UsersAccountResponse();
+
+    if (userId == null || userId == undefined) {
+      response.code = HttpStatus.BAD_REQUEST.toString(); 
+      response.data = null;
+      response.message = `User id null or undefined`;
+      response.cause = null;
+
+      throw new HttpException(response, HttpStatus.BAD_REQUEST);
+    }
+
+    try{
+      await this.userService.sendVerifyRegister(userId, language);
+
+      response.code = HttpStatus.OK.toString(); 
+      response.data = null;
+      response.message = "Send verify link register success";
+      response.cause = null;
+      return response;
+    } catch (error) {
+      response.code = error.code;
+      response.data = null;
+      response.message = error.message;
+      response.cause = error.cause ?? null;
+
+      return response;
+    }
+  } 
 }

@@ -43,5 +43,5 @@ export class UsersAccount {
   updated_at: Date;
 
   @OneToOne(type => Token, token => token.users_id, {nullable: true})
-  token?: Token;
+  tokenData?: Token;
 }

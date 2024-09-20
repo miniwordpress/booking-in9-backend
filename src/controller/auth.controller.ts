@@ -4,13 +4,18 @@ import { TokenResponse } from 'src/dto/response/token.response';
 import { TokenModel } from 'src/dto/models/token.model';
 import { UsersAccountResponse } from 'src/dto/response/user.account.response';
 import { UserAccountModel } from 'src/dto/models/user.account.model';
+import { ForgotPasswordRequest } from 'src/dto/request/forgot.password.user.request';
+import { ForgotPasswordResponse } from 'src/dto/response/forgot.password.response';
+import { ForgotPasswordModel } from 'src/dto/models/forgot.password.model';
   
 @Controller('authentication')
   export class AuthController {
     constructor(private authService: AuthService) {}
 
     @Post('signIn')
-    async signIn(@Query('email') email: string, @Query('password') password: string): Promise<UsersAccountResponse> {
+    async signIn(
+      @Query('email') email: string, 
+      @Query('password') password: string): Promise<UsersAccountResponse> {
       var response = new UsersAccountResponse();
 
       try {
@@ -108,6 +113,36 @@ import { UserAccountModel } from 'src/dto/models/user.account.model';
         response.code = HttpStatus.OK.toString();
         response.data = [tokenData];
         response.message = "Refresh token success";
+        response.cause = null;
+        return response;
+      } catch (error) {
+        response.code = error.code;
+        response.data = null;
+        response.message = error.message;
+        response.cause = error.cause ?? null;
+        return response;
+      }
+    }
+
+    @Patch("forgotPassword")
+    async forgotPassword(@Body() forgotPasswordRequest: ForgotPasswordRequest): Promise<ForgotPasswordResponse> {
+      var response = new ForgotPasswordResponse();
+
+      try {
+        if (forgotPasswordRequest) {
+          response.code = HttpStatus.BAD_REQUEST.toString(); 
+          response.data = null;
+          response.message = `forgotPasswordRequest is null`;
+          response.cause = null;
+  
+          throw new HttpException(response, HttpStatus.BAD_REQUEST);
+        }
+
+        let responseForgotPasswordData = new ForgotPasswordModel();
+
+        response.code = HttpStatus.OK.toString();
+        response.data = [responseForgotPasswordData];
+        response.message = "Re-new password success";
         response.cause = null;
         return response;
       } catch (error) {
