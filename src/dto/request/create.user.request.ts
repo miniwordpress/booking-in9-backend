@@ -29,6 +29,9 @@ export class CreateUserRequest {
     @IsNotEmpty()
     role: UsersRole;
 
+    @IsNotEmpty()
+    language: string;
+
     description?: string;
 
     createdAt?: Date;

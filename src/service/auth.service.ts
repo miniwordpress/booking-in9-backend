@@ -22,7 +22,11 @@ export class AuthService {
   private readonly jwtService: JwtService;
 
   async verifyToken(token: string): Promise<any> {
-    return this.jwtService.verify(token);
+    try {
+      return this.jwtService.verify(token);
+    } catch (error) {
+      throw new UnauthorizedException('Failed to verify token', error.message);
+    }
   }
 
   async decodeToken(token: string): Promise<any> {
