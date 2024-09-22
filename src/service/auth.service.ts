@@ -75,7 +75,7 @@ export class AuthService {
         throw new UnauthorizedException();
       }
 
-      const payload = { sub: user.id, userData: user };
+      const payload = { sub: user.id, userData: user, iat: new Date().getTime() };
       const accessToken = await this.jwtService.signAsync(payload);
       const expireAt = new Date();
 
