@@ -54,7 +54,7 @@ export class UsersService {
 
       if (saveUserData !== null) {
         await this.authService.generateToken(userData.id);
-        await this.sendVerifyRegister(userData.id, createUsersRequest.language);
+        //await this.sendVerifyRegister(userData.id, createUsersRequest.language);
         userData.password = passwordGenerated;
 
         return userData;
