@@ -81,16 +81,27 @@ export class AuthService {
 
       expireAt.setHours(expireAt.getHours() + 1);
 
-      const tokenEntity = this.tokenRepository.create({
-        token: accessToken,
-        users_id: user,
-        type: TokenType.ACCESS_TOKEN,
-        expire_at: expireAt,
-        created_at: new Date(),
-        used_at: new Date(),
+      const existingToken = await this.tokenRepository.findOne({
+        where: { users_id: user, type: TokenType.ACCESS_TOKEN },
       });
+  
+      if (existingToken) {
+        existingToken.token = accessToken;
+        existingToken.expire_at = expireAt;
+        existingToken.used_at = new Date();
+        await this.tokenRepository.save(existingToken);
+      } else {
+        const tokenEntity = this.tokenRepository.create({
+          token: accessToken,
+          users_id: user,
+          type: TokenType.ACCESS_TOKEN,
+          expire_at: expireAt,
+          created_at: new Date(),
+          used_at: new Date(),
+        });
+        await this.tokenRepository.save(tokenEntity);
+      }
 
-      await this.tokenRepository.save(tokenEntity);
       await this.deleteToken(user.id, TokenType.VERIFY_REGISTER);
 
       return user;
