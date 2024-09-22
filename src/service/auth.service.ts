@@ -39,15 +39,25 @@ export class AuthService {
     let userData = new UsersAccount();
     userData.id = usersId;
 
-    const token = new Token();
-    token.token = tokenString;
-    token.users_id = userData;
-    token.type = TokenType.VERIFY_REGISTER;
-    token.expire_at = TIME_OUT_TOKEN;
-    token.created_at = new Date();
-    token.used_at = new Date();
+    const existingToken = await this.tokenRepository.findOne({
+      where: { users_id: userData }
+    });
 
-    await this.tokenRepository.save(token);
+    if (existingToken) {
+      existingToken.token = tokenString;
+      existingToken.expire_at = new Date(Date.now() + 60 * 60 * 1000);
+      await this.tokenRepository.save(existingToken);
+    } else { 
+      const token = new Token();
+      token.token = tokenString;
+      token.users_id = userData;
+      token.type = TokenType.VERIFY_REGISTER;
+      token.expire_at = TIME_OUT_TOKEN;
+      token.created_at = new Date(Date.now() + 60 * 60 * 1000);
+      token.used_at = new Date();
+
+      await this.tokenRepository.save(token);
+    }
 
     return tokenString;
   }
