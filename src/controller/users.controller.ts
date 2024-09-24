@@ -1,4 +1,5 @@
-import { Controller, Get, Post, Query, Delete, HttpStatus, Body, Patch, HttpException } from '@nestjs/common';
+import { Controller, Get, Post, Query, Delete, HttpStatus, Body, Patch, HttpException, Res } from '@nestjs/common';
+import { Response } from 'express';
 import { UsersService } from '../service/users.service';
 import { CreateUserRequest } from '../dto/request/create.user.request';
 import { UsersAccountResponse } from '../dto/response/user.account.response';
@@ -10,7 +11,7 @@ export class UsersController {
   constructor(private readonly userService: UsersService) {}
 
   @Post('createUser')
-  async createUser(@Body() createUserDto: CreateUserRequest): Promise<UsersAccountResponse> {
+  async createUser(@Body() createUserDto: CreateUserRequest, @Res() res: Response): Promise<UsersAccountResponse> {
     var response = new UsersAccountResponse();
 
     if (createUserDto == null) {
@@ -23,7 +24,7 @@ export class UsersController {
     }
 
     try {
-      const userData = await this.userService.createUser(createUserDto);
+      const userData = await this.userService.createUser(createUserDto, res);
       let userAccountModel = new UserAccountModel();
       userAccountModel.id = userData.id;
       userAccountModel.firstName = userData.first_name;
@@ -235,8 +236,9 @@ export class UsersController {
     }
   }
 
+  //TODO:waith for confirm
   @Post("sendVerifyLinkRegister")
-  async sendVerifyLinkRegister(@Query('userId') userId: bigint, @Query('language') language: string): Promise<UsersAccountResponse> {
+  async sendVerifyLinkRegister(@Query('userId') userId: bigint, @Query('language') language: string, @Res() res: Response): Promise<UsersAccountResponse> {
     var response = new UsersAccountResponse();
 
     if (userId == null || userId == undefined) {
@@ -249,7 +251,7 @@ export class UsersController {
     }
 
     try{
-      await this.userService.sendVerifyRegister(userId, language);
+      await this.userService.sendVerifyRegister(userId, language, res);
 
       response.code = HttpStatus.OK.toString(); 
       response.data = null;

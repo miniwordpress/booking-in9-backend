@@ -1,5 +1,6 @@
 import { IsNotEmpty, IsDate} from 'class-validator';
 import { isEmpty } from 'rxjs';
+import { IDNumberType } from 'src/enum/id.number.type';
 
 export class CreateUserRequest {
     id?: bigint;
@@ -20,6 +21,9 @@ export class CreateUserRequest {
 
     @IsNotEmpty()
     idNumber: string;
+
+    @IsNotEmpty()
+    idNumberType: IDNumberType;
     
     img?: string;
 

@@ -1,6 +1,6 @@
 import { HttpStatus, Injectable } from '@nestjs/common'
 import { MailerService } from '@nestjs-modules/mailer'
-import { mailDto } from 'src/dto/email/mailDto'
+import { mailDto } from '../dto/email/mailDto'
 import { Response } from 'express'
 import { Res } from '@nestjs/common'
 

@@ -1,5 +1,6 @@
 import { Entity, Column, PrimaryGeneratedColumn, OneToOne } from 'typeorm';
 import { Token } from './token';
+import { IDNumberType } from 'src/enum/id.number.type';
 
 @Entity()
 export class UsersAccount {
@@ -23,6 +24,9 @@ export class UsersAccount {
 
   @Column({length: 50})
   id_number: string;
+
+  @Column()
+  id_number_type: IDNumberType;
 
   @Column({type: 'text', nullable: true})
   img: string;
