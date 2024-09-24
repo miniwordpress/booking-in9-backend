@@ -14,26 +14,41 @@ import { MailerModule } from '@nestjs-modules/mailer'
 
 @Module({
   imports: [
-    MailerModule.forRoot({
-      transport: {
-        host: 'localhost',
-        port: 1025,
-        secure: false,
-      }
-    }),
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env',
     }),
-    TypeOrmModule.forRoot({
-      type: 'postgres',
-      host: 'localhost',
-      port: 5432,
-      username: 'admin',
-      password: 'passw0rdIn9',
-      database: 'postgres',
-      entities: [UsersAccount, Token],
-      synchronize: true,
+    MailerModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        transport: {
+          host: configService.get<string>('MAIL_HOST'),
+          port: configService.get<number>('MAIL_PORT'),
+          secure: configService.get<boolean>('MAIL_SECURE'),
+          // auth: {
+          //   user: configService.get<string>('MAIL_USER'),
+          //   pass: configService.get<string>('MAIL_PASSWORD'),
+          // },
+        },
+        // defaults: {
+        //   from: '"No Reply" <noreply@example.com>',
+        // },
+      }),
+    }),
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        type: 'postgres',
+        host: configService.get<string>('DB_HOST'),
+        port: configService.get<number>('DB_PORT'),
+        username: configService.get<string>('DB_USERNAME'),
+        password: configService.get<string>('DB_PASSWORD'),
+        database: configService.get<string>('DB_DATABASE'),
+        entities: [UsersAccount, Token],
+        synchronize: true,
+      }),
     }),
     UsersModule,
     HttpModule,
