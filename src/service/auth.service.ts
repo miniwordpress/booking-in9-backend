@@ -6,6 +6,7 @@ import { Repository } from 'typeorm';
 import { UsersAccount } from '../entity/users.account';
 import { TokenType } from '../enum/token.type';
 import * as bcrypt from 'bcrypt';
+import e from 'express';
 
 const TIME_OUT_TOKEN = new Date(Date.now() + 60 * 60 * 1000);
 
@@ -72,8 +73,10 @@ export class AuthService {
       let passwordHash = await bcrypt.hash(password, 10);
 
       if (!user || !(await bcrypt.compare(password, user.password))) {
-        throw new UnauthorizedException();
+        throw new UnauthorizedException("Failed to sign in: Invalid email or password");
       }
+
+      await this.deleteToken(user.id, TokenType.VERIFY_REGISTER);
 
       const payload = { sub: user.id, userData: user, iat: new Date().getTime() };
       const accessToken = await this.jwtService.signAsync(payload);
@@ -84,7 +87,7 @@ export class AuthService {
       const existingToken = await this.tokenRepository.findOne({
         where: { users_id: user, type: TokenType.ACCESS_TOKEN },
       });
-  
+
       if (existingToken) {
         existingToken.token = accessToken;
         existingToken.expire_at = expireAt;
@@ -102,8 +105,6 @@ export class AuthService {
         await this.tokenRepository.save(tokenEntity);
       }
 
-      await this.deleteToken(user.id, TokenType.VERIFY_REGISTER);
-
       return user;
     } catch (error) {
       throw new UnauthorizedException(error.message);
@@ -120,8 +121,10 @@ export class AuthService {
 
   async refreshAccessToken(userId: bigint): Promise<Token> {
     try {
+      let users = new UsersAccount();
+      users.id = userId;
       const oldToken = (await this.tokenRepository.findOne({
-        where: { id: userId, type: TokenType.ACCESS_TOKEN },
+        where: { users_id: users, type: TokenType.ACCESS_TOKEN },
       }))?.token;
 
       const decodedToken = await this.decodeToken(oldToken);

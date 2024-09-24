@@ -2,7 +2,7 @@ import { Body, Controller, Get, Post, Res, HttpStatus, HttpException } from '@ne
 import { loginRequest } from 'src/dto/mock/request/loginRequest'
 import { loginResponse } from 'src/dto/mock/response/loginResponse'
 import { Response } from 'express'
-import { mailDto } from 'src/dto/email/mailDto'
+import { mailDto } from '../dto/email/mailDto'
 import { MockUpService } from 'src/service/mockup.service'
 
 @Controller('mock')
