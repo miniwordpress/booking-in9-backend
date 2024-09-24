@@ -251,7 +251,7 @@ export class UsersController {
     }
 
     try{
-      await this.userService.sendVerifyRegister(userId, language, res);
+      //await this.userService.sendVerifyRegister(userId, language, res);
 
       response.code = HttpStatus.OK.toString(); 
       response.data = null;
