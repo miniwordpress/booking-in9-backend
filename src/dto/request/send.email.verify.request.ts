@@ -5,6 +5,8 @@ export class SendEmailVerifyRequest {
     @IsNotEmpty()
     userAccount: UsersAccount;
     @IsNotEmpty()
+    token: string;
+    @IsNotEmpty()
     language: string;
     @IsNotEmpty()
     fromAuthor: string;

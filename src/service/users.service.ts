@@ -56,12 +56,13 @@ export class UsersService {
       let saveUserData = await this.usersAccountRepository.save(userData);
 
       if (saveUserData !== null) {
-        await this.authService.generateToken(userData.id);
-        userData.password = passwordGenerated;
-        var sendEmailVerifyRequest = new SendEmailVerifyRequest();
-        sendEmailVerifyRequest.userAccount = userData;
-        await this.sendEmailVerify(sendEmailVerifyRequest, res);
-        return userData;
+        await this.authService.generateToken(saveUserData.id);
+        saveUserData.password = passwordGenerated;
+        // var sendEmailVerifyRequest = new SendEmailVerifyRequest();
+        // sendEmailVerifyRequest.userAccount = saveUserData;
+        // sendEmailVerifyRequest.token = saveUserData.tokenData.token;
+        // await this.sendEmailVerify(sendEmailVerifyRequest, res);
+        return saveUserData;
       }
     } catch (error) {
       throw error;
@@ -173,81 +174,84 @@ export class UsersService {
     return passwordValue;
   }
 
+  //TODO:languages for send email header
   async sendEmailVerify(sendEmailVerifyRequest: SendEmailVerifyRequest, @Res() res: Response): Promise<any> {
-    try {
-      let tokenValue = await this.tokenRepository.findOne({ where: { users_id: sendEmailVerifyRequest.userAccount} });
-      let linkVerify = `http://localhost:3000/verifyRegister?${tokenValue.token}`;
-      let email = sendEmailVerifyRequest.userAccount.email;
-      let password = sendEmailVerifyRequest.userAccount.password;
+    // try {
+    //   let tokenValue = await this.tokenRepository.findOne({ where: { users_id: sendEmailVerifyRequest.userAccount} });
+    //   console.log(tokenValue.token);
 
-      if (tokenValue !== null) {
-        throw new Error('Token already exists');
-      }
+    //   let linkVerify = `http://localhost:4000/verifyRegister?${tokenValue.token}`;
+    //   let email = sendEmailVerifyRequest.userAccount.email;
+    //   let password = sendEmailVerifyRequest.userAccount.password;
 
-      let sendEmailVerify = new SendEmailVerifyRequest();
-      sendEmailVerify.fromAuthor = "in9co@mail.com";
+    //   // if (tokenValue !== null) {
+    //   //   throw new Error('Token already exists');
+    //   // }
 
-        await this.authService.verifyToken(tokenValue.token);
+    //   let sendEmailVerify = new SendEmailVerifyRequest();
+    //   sendEmailVerify.fromAuthor = "in9co@mail.com";
 
-        await this.mailerService.sendMail({
-          to: sendEmailVerifyRequest.userAccount.email,
-          from: sendEmailVerify.fromAuthor,
-          subject: sendEmailVerifyRequest.language == "th" ? "IN.9.CO – ยืนยันบัญชีผู้ใช้งาน" : "IN.9.CO – Verify Account",
-          html: sendEmailVerifyRequest.language == "th" 
-                ? `<h1 font-size: 16px>ยืนยันอีเมล</h1>
-                <br>
-                <p font-size: 16px>ท่านได้สร้างบัญชีการใช้งานโดยใช้อีเมลดังต่อไปนี้: ${email}<\p>
-                <br>
-                <p font-size: 16px>คลิกปุ่ม "เข้าสู่ระบบ" ด้านล่างเพื่อยืนยันอีเมลและเข้าบัญชีการใช้งานของท่าน<\p>
-                <br>
-                <br>
-                <h1 font-size: 16px>ขั้นตอนการเข้าสู่ระบบการใช้งาน</h1>
-                  <br>
-                  <p font-size: 16px>อีเมล: ${email}</p>
-                  <br>
-                  <p font-size: 16px>รหัสผ่าน: ${password}</p>
-                   <br>
-                   <br>
-                  <a href="${linkVerify}" style="display: inline-block; padding: 10px 20px; font-size: 16px; color: white; background-color: #13D440; text-decoration: none; border-radius: 5px;">
-                    เข้าสู่ระบบ in9.co
-                  </a>
-                  <br>
-                  <br>
-                  <p font-size: 16px>ขอแสดงความนับถือ</p>
-                  <br>
-                  <p font-size: 16px>ทีมงาน IN.9.CO</p>`
-                : `<h1 font-size: 16px>Verify Emai</h1>
-                  <br>
-                  <p font-size: 16px>You have created an account using the following email: ${email}<\p>
-                  <br>
-                  <p font-size: 16px>Click the "Sign In" button below to confirm your email and log into your account.<\p>
-                  <br>
-                  <br>
-                  <h1 font-size: 16px>Please login</h1>
-                  <br>
-                  <p font-size: 16px>Email: ${email}</p>
-                  <br>
-                  <p font-size: 16px>Password: ${password}</p>
-                  <a href="${linkVerify}" style="display: inline-block; padding: 10px 20px; font-size: 16px; color: white; background-color: #13D440; text-decoration: none; border-radius: 5px;">
-                    Login in9.co
-                  </a>
-                  <br>
-                  <br>
-                  <p font-size: 16px>Kind regards,</p>
-                  <br>
-                  <p font-size: 16px>Team IN.9.CO</p>`,
-        });
-        return res.status(HttpStatus.OK).json({ message: "Send success" });
-    } catch (error) {
-      console.log(error.message);
-      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: "Can't send" });
-    }
+    //     //await this.authService.verifyToken(sendEmailVerifyRequest.userAccount.tokenData.token);
+
+    //     await this.mailerService.sendMail({
+    //       to: sendEmailVerifyRequest.userAccount.email,
+    //       from: sendEmailVerify.fromAuthor,
+    //       subject: sendEmailVerifyRequest.language == "th" ? "IN.9.CO – ยืนยันบัญชีผู้ใช้งาน" : "IN.9.CO – Verify Account",
+    //       html: sendEmailVerifyRequest.language == "th"
+    //             ? `<h1 font-size: 16px>ยืนยันอีเมล</h1>
+    //             <br>
+    //             <p font-size: 16px>ท่านได้สร้างบัญชีการใช้งานโดยใช้อีเมลดังต่อไปนี้: ${email}<\p>
+    //             <br>
+    //             <p font-size: 16px>คลิกปุ่ม "เข้าสู่ระบบ" ด้านล่างเพื่อยืนยันอีเมลและเข้าบัญชีการใช้งานของท่าน<\p>
+    //             <br>
+    //             <br>
+    //             <h1 font-size: 16px>ขั้นตอนการเข้าสู่ระบบการใช้งาน</h1>
+    //               <br>
+    //               <p font-size: 16px>อีเมล: ${email}</p>
+    //               <br>
+    //               <p font-size: 16px>รหัสผ่าน: ${password}</p>
+    //                <br>
+    //                <br>
+    //               <a href="${linkVerify}" style="display: inline-block; padding: 10px 20px; font-size: 16px; color: white; background-color: #13D440; text-decoration: none; border-radius: 5px;">
+    //                 เข้าสู่ระบบ in9.co
+    //               </a>
+    //               <br>
+    //               <br>
+    //               <p font-size: 16px>ขอแสดงความนับถือ</p>
+    //               <br>
+    //               <p font-size: 16px>ทีมงาน IN.9.CO</p>`
+    //             : `<h1 font-size: 16px>Verify Emai</h1>
+    //               <br>
+    //               <p font-size: 16px>You have created an account using the following email: ${email}<\p>
+    //               <br>
+    //               <p font-size: 16px>Click the "Sign In" button below to confirm your email and log into your account.<\p>
+    //               <br>
+    //               <br>
+    //               <h1 font-size: 16px>Please login</h1>
+    //               <br>
+    //               <p font-size: 16px>Email: ${email}</p>
+    //               <br>
+    //               <p font-size: 16px>Password: ${password}</p>
+    //               <a href="${linkVerify}" style="display: inline-block; padding: 10px 20px; font-size: 16px; color: white; background-color: #13D440; text-decoration: none; border-radius: 5px;">
+    //                 Login in9.co
+    //               </a>
+    //               <br>
+    //               <br>
+    //               <p font-size: 16px>Kind regards,</p>
+    //               <br>
+    //               <p font-size: 16px>Team IN.9.CO</p>`,
+    //     });
+    //     return res.status(HttpStatus.OK).json({ message: "Send success" });
+    // } catch (error) {
+    //   console.log(error.message);
+    //   return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: "Can't send" });
+    // }
   }
 
   async sendEmailForgotPassword(sendForgotEmailRequest: SendEmailForgotPasswordRequest, @Res() res: Response): Promise<any> {
     try {
       let tokenValue = await this.tokenRepository.findOne({ where: { users_id: sendForgotEmailRequest.userAccount} });
-      let linkForgotPassword = `http://localhost:3000/forgotPassword?${tokenValue.token}`;
+      let linkForgotPassword = `http://localhost:3000/forgotPassword?${sendForgotEmailRequest.userAccount.tokenData.token}`;
       let email = sendForgotEmailRequest.userAccount.email;
       let password = sendForgotEmailRequest.userAccount.password;
 
