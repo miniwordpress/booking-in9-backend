@@ -1,17 +1,18 @@
 import { Entity, Column, PrimaryGeneratedColumn, OneToOne, JoinColumn } from 'typeorm';
-import { UsersAccount } from './users.account';
+import { Users } from './users';
 import { TokenType } from '../enum/token.type';
 
 @Entity()
 export class Token {
   @PrimaryGeneratedColumn()
-  id: bigint;
+  id: number;
 
   @Column({ type: 'text', nullable: false })
   token: string;
 
-  @OneToOne(() => UsersAccount, usersAccount => usersAccount.id)
-  users_id: UsersAccount;
+  @OneToOne(() => Users, (usersAccount) => usersAccount.token,{cascade: true})
+  @JoinColumn({ name: "user_id" })
+  user: Users;
 
   @Column({ length: 100, nullable: false })
   type: TokenType; 

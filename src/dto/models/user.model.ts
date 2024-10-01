@@ -1,5 +1,8 @@
+import { UsersRole } from "src/enum/users-role";
+import { UsersStatus } from "src/enum/users-status";
+
 export class UserAccountModel {
-    id: bigint;
+    id: number;
     firstName: string;
     lastName: string;
     email: string;

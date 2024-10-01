@@ -2,7 +2,7 @@ import { IsNotEmpty } from "class-validator";
 
 export class ForgotPasswordRequest {
     @IsNotEmpty()
-    userId: bigint;
+    userId: number;
     @IsNotEmpty()
     oldPassword: string;
     @IsNotEmpty()

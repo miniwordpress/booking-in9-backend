@@ -10,7 +10,7 @@ export class MockUpController {
   constructor(private readonly mockUpService: MockUpService) { }
 
   @Post('login')
-  check(@Body() loginDto: loginRequest, @Res() res: Response): Response<loginResponse> {
+  check(@Body() loginDto: loginRequest, @Res() res: Response<loginResponse>) {
     const { email, password } = loginDto
     if (email == null && password == null) throw new HttpException('Please fill input', HttpStatus.BAD_REQUEST)
     if (email == "test@test.com" && password == "1234567") {

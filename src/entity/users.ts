@@ -1,11 +1,13 @@
-import { Entity, Column, PrimaryGeneratedColumn, OneToOne } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, OneToOne, JoinColumn } from 'typeorm';
 import { Token } from './token';
 import { IDNumberType } from 'src/enum/id.number.type';
+import { UsersRole } from "src/enum/users-role"
+import { UsersStatus } from "src/enum/users-status"
 
 @Entity()
-export class UsersAccount {
+export class Users {
   @PrimaryGeneratedColumn()
-  id: bigint;
+  id: number;
 
   @Column({ length: 100})
   first_name: string;
@@ -46,6 +48,6 @@ export class UsersAccount {
   @Column({nullable: true})
   updated_at: Date;
 
-  @OneToOne(type => Token, token => token.users_id, {nullable: true})
-  tokenData?: Token;
+  @OneToOne(() => Token, (token) => token.user, { nullable: true })
+  token?: Token;
 }

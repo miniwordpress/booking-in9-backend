@@ -1,5 +1,7 @@
+import { UsersRole } from "src/enum/users-role"
+import { UsersStatus } from "src/enum/users-status"
+
 export class UpdateUserRequest {
-    id: bigint;
     firstName?: string;
     lastName?: string;
     email?: string;

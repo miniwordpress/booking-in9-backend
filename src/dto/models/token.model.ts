@@ -1,7 +1,7 @@
 import { TokenType } from "src/enum/token.type";
 
 export class TokenModel {
-    userId: bigint;
+    userId: number;
     token: string;
     type: TokenType;
     expireAt: Date;

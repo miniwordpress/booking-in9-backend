@@ -1,4 +1,4 @@
-import { UserAccountModel } from "../models/user.account.model";
+import { UserAccountModel } from "../models/user.model";
 
 export class UsersAccountResponse {
     code: string;

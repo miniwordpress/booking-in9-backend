@@ -1,13 +1,14 @@
 import { IsNotEmpty } from "class-validator";
-import { UsersAccount } from "src/entity/users.account";
+import { Users } from "src/entity/users";
 
 export class SendEmailVerifyRequest {
     @IsNotEmpty()
-    userAccount: UsersAccount;
+    userAccount: Users;
     @IsNotEmpty()
     token: string;
     @IsNotEmpty()
-    language: string;
+    language?: string;
     @IsNotEmpty()
-    fromAuthor: string;
+    fromAuthor?: string;
+    password: string
 }

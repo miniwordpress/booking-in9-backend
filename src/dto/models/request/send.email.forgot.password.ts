@@ -1,9 +1,9 @@
 import { IsNotEmpty } from "class-validator";
-import { UsersAccount } from "src/entity/users.account";
+import { Users } from "src/entity/users";
 
 export class SendEmailForgotPasswordRequest {
     @IsNotEmpty()
-    userAccount: UsersAccount;
+    userAccount: Users;
     @IsNotEmpty()
     language: string;
     @IsNotEmpty()

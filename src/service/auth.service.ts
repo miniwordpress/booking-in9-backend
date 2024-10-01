@@ -1,208 +1,176 @@
-import { forwardRef, Inject, Injectable, UnauthorizedException } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Token } from '../entity/token';
-import { Repository } from 'typeorm';
-import { UsersAccount } from '../entity/users.account';
-import { TokenType } from '../enum/token.type';
-import * as bcrypt from 'bcrypt';
-import e from 'express';
+import { Inject, Injectable, UnauthorizedException } from '@nestjs/common'
+import { JwtService } from '@nestjs/jwt'
+import { InjectRepository } from '@nestjs/typeorm'
+import { Token } from '../entity/token'
+import { Repository } from 'typeorm'
+import { Users } from '../entity/users'
+import { TokenType } from '../enum/token.type'
+import * as bcrypt from 'bcrypt'
+import { SignInResponse } from 'src/dto/response/signin-response'
+import { UsersStatus } from 'src/enum/users-status'
 
-const TIME_OUT_TOKEN = new Date(Date.now() + 60 * 60 * 1000);
+const TIME_OUT_TOKEN = new Date(Date.now() + 60 * 60 * 1000)
+const TIME_OUT_REFRESH_TOKEN = new Date(Date.now() + (60 * 60 * 1000) * 2)
 
 @Injectable()
 export class AuthService {
   constructor(
     @InjectRepository(Token)
     private tokenRepository: Repository<Token>,
-    @InjectRepository(UsersAccount)
-    private userRepository: Repository<UsersAccount>
-  ) {}
+    @InjectRepository(Users)
+    private userRepository: Repository<Users>
+  ) { }
 
   @Inject(JwtService)
-  private readonly jwtService: JwtService;
+  private readonly jwtService: JwtService
 
   async verifyToken(token: string): Promise<any> {
     try {
-      return this.jwtService.verify(token);
+      return this.jwtService.verify(token)
     } catch (error) {
-      throw new UnauthorizedException('Failed to verify token', error.message);
+      throw new UnauthorizedException('Failed to verify token', error.message)
     }
   }
 
   async decodeToken(token: string): Promise<any> {
-    return this.jwtService.decode(token);
+    return this.jwtService.decode(token)
   }
 
-  async generateToken(usersId: bigint): Promise<string> {
-    const payload = { usersId };
-    const tokenString = this.jwtService.sign(payload);
-    let userData = new UsersAccount();
-    userData.id = usersId;
-
-    const existingToken = await this.tokenRepository.findOne({
-      where: { users_id: userData }
-    });
-
-    if (existingToken) {
-      existingToken.token = tokenString;
-      existingToken.expire_at = new Date(Date.now() + 60 * 60 * 1000);
-      await this.tokenRepository.save(existingToken);
-    } else { 
-      const token = new Token();
-      token.token = tokenString;
-      token.users_id = userData;
-      token.type = TokenType.VERIFY_REGISTER;
-      token.expire_at = TIME_OUT_TOKEN;
-      token.created_at = new Date(Date.now() + 60 * 60 * 1000);
-      token.used_at = new Date();
-
-      await this.tokenRepository.save(token);
-    }
-
-    return tokenString;
+  async generateToken(user: Users): Promise<string> {
+    const payload = { user: user.id, type: "VERIFY_TOKEN" }
+    const token = new Token()
+    token.token = this.jwtService.sign(payload)
+    token.user = user
+    token.type = TokenType.VERIFY_REGISTER
+    token.expire_at = TIME_OUT_TOKEN
+    token.refresh_time = TIME_OUT_REFRESH_TOKEN
+    token.created_at = new Date(Date.now() + 60 * 60 * 1000)
+    token.used_at = new Date()
+    await this.tokenRepository.save(token)
+    return token.token
   }
 
   async signIn(
     email: string,
     password: string,
-  ): Promise<UsersAccount> {
-
+  ): Promise<SignInResponse> {
     try {
-      const user = await this.userRepository.findOneBy({email: email});
-      let passwordHash = await bcrypt.hash(password, 10);
-
+      const user = await this.userRepository.findOne({ where: { email }, relations: ['token'] })
+      if (user.status != UsersStatus.ACTIVE) {
+        throw new UnauthorizedException("Sign in failed because status not active")
+      }
       if (!user || !(await bcrypt.compare(password, user.password))) {
-        throw new UnauthorizedException("Failed to sign in: Invalid email or password");
+        throw new UnauthorizedException("Failed to sign in: Invalid email or password")
       }
-
-      await this.deleteToken(user.id, TokenType.VERIFY_REGISTER);
-
-      const payload = { sub: user.id, userData: user, iat: new Date().getTime() };
-      const accessToken = await this.jwtService.signAsync(payload);
-      const expireAt = new Date();
-
-      expireAt.setHours(expireAt.getHours() + 1);
-
-      const existingToken = await this.tokenRepository.findOne({
-        where: { users_id: user, type: TokenType.ACCESS_TOKEN },
-      });
-
-      if (existingToken) {
-        existingToken.token = accessToken;
-        existingToken.expire_at = expireAt;
-        existingToken.used_at = new Date();
-        await this.tokenRepository.save(existingToken);
-      } else {
-        const tokenEntity = this.tokenRepository.create({
-          token: accessToken,
-          users_id: user,
-          type: TokenType.ACCESS_TOKEN,
-          expire_at: expireAt,
-          created_at: new Date(),
-          used_at: new Date(),
-        });
-        await this.tokenRepository.save(tokenEntity);
+      if (user.token) {
+        await this.deleteToken(user)
       }
+      const payload = { sub: user.id, iat: new Date().getTime() }
+      const accessToken = await this.jwtService.signAsync(payload)
 
-      return user;
+      this.tokenRepository.create({
+        token: accessToken,
+        user: user,
+        type: TokenType.ACCESS_TOKEN,
+        expire_at: TIME_OUT_TOKEN,
+        refresh_time: TIME_OUT_REFRESH_TOKEN,
+        created_at: new Date(),
+        used_at: new Date(),
+      })
+      return new SignInResponse(user, accessToken)
     } catch (error) {
-      throw new UnauthorizedException(error.message);
+      throw new UnauthorizedException(error.message)
     }
   }
 
-  async signOut(userId: bigint): Promise<void> { 
-    try {
-      return await this.deleteToken(userId, TokenType.ACCESS_TOKEN);
-    } catch (error) {
-      throw new UnauthorizedException('Failed to sign out', error.message);
-    }
-  }
+  // async signOut(userId: number): Promise<void> {
+  //   try {
+  //     return await this.deleteToken(userId, TokenType.ACCESS_TOKEN)
+  //   } catch (error) {
+  //     throw new UnauthorizedException('Failed to sign out', error.message)
+  //   }
+  // }
 
-  async refreshAccessToken(userId: bigint): Promise<Token> {
+  async refreshAccessToken(userId: number): Promise<Token> {
     try {
-      let users = new UsersAccount();
-      users.id = userId;
+      let users = new Users()
+      users.id = userId
       const oldToken = (await this.tokenRepository.findOne({
-        where: { users_id: users, type: TokenType.ACCESS_TOKEN },
-      }))?.token;
+        where: { user: users, type: TokenType.ACCESS_TOKEN },
+      }))?.token
 
-      const decodedToken = await this.decodeToken(oldToken);
-  
+      const decodedToken = await this.decodeToken(oldToken)
+
       if (!decodedToken) {
-        throw new UnauthorizedException('Invalid token');
+        throw new UnauthorizedException('Invalid token')
       }
-  
-      const currentTime = Math.floor(Date.now() / 1000);
+
+      const currentTime = Math.floor(Date.now() / 1000)
 
       if (decodedToken.expire_at < currentTime) {
-        let tokenUpdateRefreshTime = await this.updateRefreshTime(userId);
+        let tokenUpdateRefreshTime = await this.updateRefreshTime(userId)
         if (!tokenUpdateRefreshTime) {
-          throw new UnauthorizedException('Failed to update refresh time');
+          throw new UnauthorizedException('Failed to update refresh time')
         } else {
-            if (tokenUpdateRefreshTime.refresh_time.getTime() < currentTime) {
-              throw new UnauthorizedException('Token refresh time is outdated');
-            }
+          if (tokenUpdateRefreshTime.refresh_time.getTime() < currentTime) {
+            throw new UnauthorizedException('Token refresh time is outdated')
+          }
         }
       }
-  
-      const newPayload = { sub: decodedToken.sub, email: decodedToken.email };
+
+      const newPayload = { sub: decodedToken.sub, email: decodedToken.email }
 
       const newAccessToken = this.jwtService.signAsync(newPayload, {
         expiresIn: '1h',
-      });
+      })
 
-      const user = await this.userRepository.findOneBy({id: userId});
+      const user = await this.userRepository.findOneBy({ id: userId })
 
       if (user == null) {
-        throw new UnauthorizedException('User not found');
+        throw new UnauthorizedException('User not found')
       }
-      return this.updateAccessToken(userId, await newAccessToken);
+      return this.updateAccessToken(userId, await newAccessToken)
     } catch (error) {
-      throw new UnauthorizedException('Failed to refresh access token', error.message);
+      throw new UnauthorizedException('Failed to refresh access token', error.message)
     }
   }
 
-  async updateRefreshTime(userId: bigint): Promise<Token> {
+  async updateRefreshTime(userId: number): Promise<Token> {
     const tokenEntity = await this.tokenRepository.findOne({
-      where: { users_id: { id: userId }, type: TokenType.ACCESS_TOKEN },
-    });
-  
+      where: { user: { id: userId }, type: TokenType.ACCESS_TOKEN },
+    })
+
     if (!tokenEntity) {
-      throw new Error('Token not found for this user');
+      throw new Error('Token not found for this user')
     }
 
-    tokenEntity.refresh_time = new Date(Date.now() + 10 * 60 * 1000);
-    return await this.tokenRepository.save(tokenEntity);
+    tokenEntity.refresh_time = new Date(Date.now() + 10 * 60 * 1000)
+    return await this.tokenRepository.save(tokenEntity)
   }
 
-  async updateAccessToken(userId: bigint, newAccessToken: string): Promise<Token> {
+  async updateAccessToken(userId: number, newAccessToken: string): Promise<Token> {
     const tokenEntity = await this.tokenRepository.findOne({
-      where: { users_id: { id: userId }, type: TokenType.ACCESS_TOKEN },
-    });
-  
+      where: { user: { id: userId }, type: TokenType.ACCESS_TOKEN },
+    })
+
     if (!tokenEntity) {
-      throw new Error('Token not found for this user');
+      throw new Error('Token not found for this user')
     }
-  
-    tokenEntity.token = newAccessToken;
-    tokenEntity.expire_at = new Date(Date.now() + 60 * 60 * 1000);
-    tokenEntity.refresh_time = new Date(Date.now() + 10 * 60 * 1000);
-    tokenEntity.used_at = new Date();
-    return await this.tokenRepository.save(tokenEntity);
+
+    tokenEntity.token = newAccessToken
+    tokenEntity.expire_at = new Date(Date.now() + 60 * 60 * 1000)
+    tokenEntity.refresh_time = new Date(Date.now() + 10 * 60 * 1000)
+    tokenEntity.used_at = new Date()
+    return await this.tokenRepository.save(tokenEntity)
   }
 
-  async deleteToken(userId: bigint, type: TokenType): Promise<void> {
-    let user = new UsersAccount();
-    user.id = userId;
-
+  async deleteToken(user: Users): Promise<void> {
     try {
       await this.tokenRepository.delete({
-        users_id: user,
-        type: type,
-      });
+        id: user.token.id,
+      })
     } catch (error) {
-      throw new UnauthorizedException('Failed to delete token', error.message);
+      throw new UnauthorizedException('Failed to delete token', error.message)
     }
   }
 }
