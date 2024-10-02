@@ -8,9 +8,10 @@ import { HttpModule } from '@nestjs/axios'
 import { UsersModule } from './users.module'
 import { AuthModule } from './auth.module'
 import { TypeOrmModule } from '@nestjs/typeorm'
-import { UsersAccount } from 'src/entity/users.account'
+import { Users } from 'src/entity/users'
 import { Token } from 'src/entity/token'
 import { MailerModule } from '@nestjs-modules/mailer'
+import { from } from 'rxjs'
 
 @Module({
   imports: [
@@ -21,20 +22,22 @@ import { MailerModule } from '@nestjs-modules/mailer'
     MailerModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        transport: {
-          host: configService.get<string>('MAIL_HOST'),
-          port: configService.get<number>('MAIL_PORT'),
-          secure: configService.get<boolean>('MAIL_SECURE'),
-          // auth: {
-          //   user: configService.get<string>('MAIL_USER'),
-          //   pass: configService.get<string>('MAIL_PASSWORD'),
-          // },
-        },
-        // defaults: {
-        //   from: '"No Reply" <noreply@example.com>',
-        // },
-      }),
+      useFactory: (configService: ConfigService) => {
+        return ({
+          transport: {
+            host: configService.get<string>('MAIL_HOST'),
+            port: configService.get<number>('MAIL_PORT'),
+            secure: false,
+            // auth: {
+            //   user: configService.get<string>('MAIL_USER'),
+            //   pass: configService.get<string>('MAIL_PASSWORD'),
+            // },
+          },
+          defaults: {
+            from: '"No Reply" <noreply@example.com>',
+          },
+        })
+      },
     }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
@@ -46,8 +49,9 @@ import { MailerModule } from '@nestjs-modules/mailer'
         username: configService.get<string>('DB_USERNAME'),
         password: configService.get<string>('DB_PASSWORD'),
         database: configService.get<string>('DB_DATABASE'),
-        entities: [UsersAccount, Token],
+        entities: [Users, Token],
         synchronize: true,
+        // timezone: "UTC"
       }),
     }),
     UsersModule,

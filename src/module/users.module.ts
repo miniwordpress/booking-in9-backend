@@ -1,12 +1,12 @@
 import { forwardRef, Module } from '@nestjs/common'
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { UsersAccount } from 'src/entity/users.account';
-import { UsersController } from 'src/controller/users.controller';
-import { UsersService } from 'src/service/users.service';
-import { Token } from 'src/entity/token';
-import { AuthService } from 'src/service/auth.service';
-import { JwtModule, JwtService } from '@nestjs/jwt';
-import { ConfigService } from '@nestjs/config';
+import { TypeOrmModule } from '@nestjs/typeorm'
+import { Users } from 'src/entity/users'
+import { UsersController } from 'src/controller/users.controller'
+import { UsersService } from 'src/service/users.service'
+import { Token } from 'src/entity/token'
+import { AuthService } from 'src/service/auth.service'
+import { JwtModule } from '@nestjs/jwt'
+import { ConfigService } from '@nestjs/config'
 
 @Module({
   imports: [
@@ -19,7 +19,7 @@ import { ConfigService } from '@nestjs/config';
         },
       }),
     }),
-    TypeOrmModule.forFeature([UsersAccount, Token]),
+    TypeOrmModule.forFeature([Users, Token]),
   ],
   controllers: [UsersController],
   providers: [UsersService, AuthService],
