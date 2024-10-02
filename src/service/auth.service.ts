@@ -39,7 +39,7 @@ export class AuthService {
   async generateToken(user: Users): Promise<string> {
     const payload = { user: user.id, type: "VERIFY_TOKEN" }
     const token = new Token()
-    token.token = this.jwtService.sign(payload)
+    token.token = this.jwtService.sign(payload, { expiresIn: '2h' })
     token.user = user
     token.type = TokenType.VERIFY_REGISTER
     token.expire_at = TIME_OUT_TOKEN
@@ -67,8 +67,7 @@ export class AuthService {
       }
       const payload = { sub: user.id, iat: new Date().getTime() }
       const accessToken = await this.jwtService.signAsync(payload)
-
-      this.tokenRepository.create({
+      this.tokenRepository.save({
         token: accessToken,
         user: user,
         type: TokenType.ACCESS_TOKEN,

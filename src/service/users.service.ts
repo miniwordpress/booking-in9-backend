@@ -17,6 +17,8 @@ import { UsersStatus } from 'src/enum/users-status'
 import { UsersRole } from 'src/enum/users-role'
 import { TokenType } from 'src/enum/token.type'
 
+const utcOffset = 7 * 60 * 60 * 1000
+
 @Injectable()
 export class UsersService {
   constructor(
@@ -70,17 +72,19 @@ export class UsersService {
   async verifyUsers(token: string): Promise<string> {
     const findToken = await this.tokenRepository.findOne({
       where: { token: token, type: TokenType.VERIFY_REGISTER },
-      relations: ['users']
+      relations: ['user']
     })
     if (findToken) {
-      if (findToken.expire_at.getTime() < new Date().getTime()) {
+      if (findToken.expire_at.getTime() > new Date().getTime()) {
         const { id: tokenId, user } = findToken
         user.status = UsersStatus.ACTIVE
         this.usersRepository.update(findToken.user.id, user)
         this.tokenRepository.delete(tokenId)
+      } else {
+        throw new BadRequestException("Token expire.")
       }
     } else {
-      new BadRequestException("Something went wrong.")
+      throw new BadRequestException("Something went wrong.")
     }
     return "verify success"
   }

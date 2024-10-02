@@ -2,7 +2,7 @@ import { RegisterMailer } from "src/dto/email/registerDto"
 
 export default function RegisterTemplate(content: RegisterMailer) {
   const { locale, password, email, token } = content
-  const endpoint = `http://localhost:4000/verifyRegister?${token}`
+  const endpoint = `http://localhost:4000/verifyRegister?token=${token}`
   if (locale == "th") {
     return `<h1 font-size: 16px>ยืนยันอีเมล</h1>
                   <br>
