@@ -11,7 +11,10 @@ import { TypeOrmModule } from '@nestjs/typeorm'
 import { Users } from 'src/entity/users'
 import { Token } from 'src/entity/token'
 import { MailerModule } from '@nestjs-modules/mailer'
-import { from } from 'rxjs'
+import { JwtModule } from '@nestjs/jwt'
+import { jwtConstants } from 'src/auth/constants'
+import { APP_GUARD } from '@nestjs/core'
+import { AuthGuard } from 'src/auth/auth.guard'
 
 @Module({
   imports: [
@@ -51,7 +54,15 @@ import { from } from 'rxjs'
         database: configService.get<string>('DB_DATABASE'),
         entities: [Users, Token],
         synchronize: true,
-        // timezone: "UTC"
+      }),
+    }),
+    JwtModule.registerAsync({
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        secret: jwtConstants.secret,
+        signOptions: {
+          expiresIn: configService.get<string>('JWT_EXPIRES_IN'),
+        },
       }),
     }),
     UsersModule,
@@ -61,6 +72,11 @@ import { from } from 'rxjs'
     AuthModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService, {
+      provide: APP_GUARD,
+      useClass: AuthGuard,
+    }
+  ],
 })
 export class AppModule { }

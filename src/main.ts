@@ -3,6 +3,7 @@ import { AppModule } from './module/app.module'
 import { ConfigService } from '@nestjs/config'
 import { EmojiLogger } from './logging/emoji-logger'
 import { HttpExceptionFilter } from './exception/http-exception-filter'
+import { AuthGuard } from '@nestjs/passport'
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
