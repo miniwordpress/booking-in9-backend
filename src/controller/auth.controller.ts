@@ -10,11 +10,13 @@ import { ForgotPasswordModel } from 'src/dto/models/forgot.password.model'
 import { SignInRequest } from 'src/dto/models/request/signin-request'
 import { Response } from 'express'
 import { BaseResponse } from 'src/dto/response/base-response'
+import { Public } from 'src/auth/auth.guard'
 
 @Controller('authentication')
 export class AuthController {
   constructor(private authService: AuthService) { }
 
+  @Public()
   @Post('signIn')
   async signIn(@Body() signInRequest: SignInRequest, @Res() res: Response<BaseResponse>) {
     const { email, password } = signInRequest

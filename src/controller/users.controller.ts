@@ -7,11 +7,13 @@ import { UserAccountModel } from 'src/dto/models/user.model'
 import { UpdateUserRequest } from 'src/dto/models/request/update.user.request'
 import { BaseResponse } from 'src/dto/response/base-response'
 import { VerifyUserRequest } from 'src/dto/models/request/verify-user-request'
+import { Public } from 'src/auth/auth.guard'
 
 @Controller('users')
 export class UsersController {
   constructor(private readonly userService: UsersService) { }
 
+  @Public()
   @Post('createUser')
   async createUser(@Body() createUserDto: CreateUserRequest, @Res() res: Response<BaseResponse>) {
     var response: BaseResponse = {
@@ -29,6 +31,7 @@ export class UsersController {
     return res.status(HttpStatus.CREATED).json(response)
   }
 
+  @Public()
   @Post('verify')
   async verifyUser(@Body() verifyUserRequest: VerifyUserRequest, @Res() res: Response<BaseResponse>) {
     try {
