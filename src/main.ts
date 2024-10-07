@@ -3,7 +3,7 @@ import { AppModule } from './module/app.module'
 import { ConfigService } from '@nestjs/config'
 import { EmojiLogger } from './logging/emoji-logger'
 import { HttpExceptionFilter } from './exception/http-exception-filter'
-import { AuthGuard } from '@nestjs/passport'
+import { ValidationPipe } from '@nestjs/common'
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
@@ -17,7 +17,8 @@ async function bootstrap() {
   })
   const configService = app.get(ConfigService)
   const port = configService.get<number>('PORT')
-  app.useGlobalFilters(new HttpExceptionFilter());
+  app.useGlobalFilters(new HttpExceptionFilter())
+  app.useGlobalPipes(new ValidationPipe())
   await app.listen(port)
 }
 bootstrap()

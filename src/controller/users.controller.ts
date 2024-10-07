@@ -16,19 +16,23 @@ export class UsersController {
   @Public()
   @Post('createUser')
   async createUser(@Body() createUserDto: CreateUserRequest, @Res() res: Response<BaseResponse>) {
-    var response: BaseResponse = {
-      code: HttpStatus.BAD_REQUEST.toString(),
-      data: null,
-      message: "createUserDto null",
-      cause: null
-
+    try {
+      var response: BaseResponse = {
+        code: HttpStatus.CREATED.toString(),
+        data: await this.userService.createUser(createUserDto, res),
+        message: "Create user success",
+        cause: null
+      }
+      return res.status(HttpStatus.CREATED).json(response)
+    } catch (error) {
+      var response: BaseResponse = {
+        code: "US001",
+        data: null,
+        message: error.message,
+        cause: null
+      }
+      return res.status(HttpStatus.BAD_REQUEST).json(response)
     }
-    if (!createUserDto) { throw new HttpException(response, HttpStatus.BAD_REQUEST) }
-    response.code = HttpStatus.CREATED.toString()
-    response.data = await this.userService.createUser(createUserDto, res)
-    response.message = "Create user success"
-    response.cause = null
-    return res.status(HttpStatus.CREATED).json(response)
   }
 
   @Public()
