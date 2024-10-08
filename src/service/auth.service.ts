@@ -8,9 +8,8 @@ import { TokenType } from '../enum/token.type'
 import * as bcrypt from 'bcrypt'
 import { SignInResponse } from 'src/dto/response/signin-response'
 import { UsersStatus } from 'src/enum/users-status'
+import { Userpayload } from 'src/dto/models/userPayload'
 
-const TIME_OUT_TOKEN = new Date(Date.now() + 60 * 60 * 1000)
-const TIME_OUT_REFRESH_TOKEN = new Date(Date.now() + (60 * 60 * 1000) * 2)
 
 @Injectable()
 export class AuthService {
@@ -42,9 +41,9 @@ export class AuthService {
     token.token = this.jwtService.sign(payload, { expiresIn: '2h' })
     token.user = user
     token.type = TokenType.VERIFY_REGISTER
-    token.expire_at = TIME_OUT_TOKEN
-    token.refresh_time = TIME_OUT_REFRESH_TOKEN
-    token.created_at = new Date(Date.now() + 60 * 60 * 1000)
+    token.expire_at = new Date(Date.now() + 60 * 60 * 1000)
+    token.refresh_time = new Date(Date.now() + (60 * 60 * 1000) * 2)
+    token.created_at = new Date()
     token.used_at = new Date()
     await this.tokenRepository.save(token)
     return token.token
@@ -65,14 +64,14 @@ export class AuthService {
       if (user.token) {
         await this.deleteToken(user)
       }
-      const payload = { sub: user.id, iat: new Date().getTime() }
-      const accessToken = await this.jwtService.signAsync(payload)
+      const payload: { user: Userpayload } = { user: { id: user.id, email: user.email, role: user.role } }
+      const accessToken = await this.jwtService.signAsync(payload, { expiresIn: '1h' })
       this.tokenRepository.save({
         token: accessToken,
         user: user,
         type: TokenType.ACCESS_TOKEN,
-        expire_at: TIME_OUT_TOKEN,
-        refresh_time: TIME_OUT_REFRESH_TOKEN,
+        expire_at: new Date(Date.now() + 60 * 60 * 1000),
+        refresh_time: new Date(Date.now() + (60 * 60 * 1000) * 2),
         created_at: new Date(),
         used_at: new Date(),
       })
