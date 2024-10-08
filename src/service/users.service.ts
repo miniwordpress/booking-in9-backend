@@ -65,6 +65,8 @@ export class UsersService {
       } catch (error) {
         throw error
       }
+    } else {
+      throw new BadRequestException(`The user ${email} exists`)
     }
     return "Success"
   }

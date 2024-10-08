@@ -1,5 +1,6 @@
 import { Controller, Get } from '@nestjs/common'
 import { HealthCheckService, HttpHealthIndicator, HealthCheck } from '@nestjs/terminus'
+import { Public } from 'src/auth/auth.guard'
 
 @Controller('health')
 export class HealthController {
@@ -8,6 +9,7 @@ export class HealthController {
     private http: HttpHealthIndicator,
   ) { }
 
+  @Public()
   @Get()
   @HealthCheck()
   async check() {
