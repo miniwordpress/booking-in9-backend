@@ -1,13 +1,13 @@
 import { NestFactory } from '@nestjs/core'
 import { AppModule } from './module/app.module'
 import { ConfigService } from '@nestjs/config'
-import { EmojiLogger } from './logging/emoji-logger'
+import { Logger } from './logger/logger'
 import { HttpExceptionFilter } from './exception/http-exception-filter'
 import { ValidationPipe } from '@nestjs/common'
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
-    logger: new EmojiLogger(),
+    logger: new Logger(),
     cors: {
       origin: "*",
       methods: "GET,POST,PUT,PATCH,DELETE",

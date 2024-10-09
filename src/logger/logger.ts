@@ -1,21 +1,21 @@
 import { LoggerService } from '@nestjs/common'
 
-export class EmojiLogger implements LoggerService {
+export class Logger implements LoggerService {
   log(message: string) {
-    this.writeToFile('📢 ' + message)
+    this.writeToFile('[Info] ' + message)
   }
 
   error(message: string, trace: string) {
-    this.writeToFile('❌ ' + message)
-    this.writeToFile('🔍 Stack Trace: ' + trace)
+    this.writeToFile('[Error] ' + message)
+    this.writeToFile('[Error] Stack Trace: ' + trace)
   }
 
   warn(message: string) {
-    this.writeToFile('⚠️ ' + message)
+    this.writeToFile('[Warning] ' + message)
   }
 
   debug(message: string) {
-    this.writeToFile('🐞 ' + message)
+    this.writeToFile('[Debug] ' + message)
   }
 
   private writeToFile(message: string) {
