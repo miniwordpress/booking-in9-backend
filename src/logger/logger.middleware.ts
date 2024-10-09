@@ -9,9 +9,9 @@ export class LoggerMiddleware implements NestMiddleware {
 
   private getRequestLog(requestId: string, req: Request) {
     const { method, originalUrl } = req
-    this.logger.log(`Request ID: ${requestId} Datetime: ${new Date().toLocaleString("en-GB")} Request path: ${method} ${originalUrl}`)
-    this.logger.log(`Request ID: ${requestId} Headers: ${JSON.stringify(maskMultipleKeysInComplexObj(req.headers), null, 2)}`)
-    this.logger.log(`Request ID: ${requestId} Body: ${JSON.stringify(maskMultipleKeysInComplexObj(req.body), null, 2)}`)
+    this.logger.log(`Request path: [${method} ${originalUrl}] Datetime: ${new Date().toLocaleString("en-GB")} [Request] Request ID: ${requestId}`)
+    this.logger.log(`Headers: ${JSON.stringify(maskMultipleKeysInComplexObj(req.headers), null, 2)}`)
+    this.logger.log(`Body: ${JSON.stringify(maskMultipleKeysInComplexObj(req.body), null, 2)}`)
   }
 
   private getResponseLog(requestId: string, res: Response) {
@@ -43,12 +43,13 @@ export class LoggerMiddleware implements NestMiddleware {
       const body = Buffer.concat(chunkBuffers).toString('utf8')
       const responseLog = {
         response: {
-          RequestId: requestId,
+          headers: res.getHeaders(),
           statusCode: res.statusCode,
-          body: maskMultipleKeysInComplexObj(JSON.parse(body) || body || {}),
+          body: JSON.parse(body) || body || {},
         },
       }
-      this.logger.log(`Response ${JSON.stringify(responseLog, null, 2)}`)
+      this.logger.log(`[Response] Datetime: ${new Date().toLocaleString("en-GB")} Status: ${res.statusCode} Request ID: ${requestId}`)
+      this.logger.log(`Data: ${JSON.stringify(maskMultipleKeysInComplexObj(JSON.parse(body) || body || {}), null, 2)}`)
       rawResponseEnd.apply(res, resArgs)
       return responseLog as unknown as Response
     }
