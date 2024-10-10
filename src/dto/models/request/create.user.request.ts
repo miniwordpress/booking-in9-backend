@@ -1,30 +1,33 @@
-import { IsNotEmpty, MaxLength, MinLength} from 'class-validator';
-import { IDNumberType } from 'src/enum/id.number.type';
+import { IsEmail, IsEnum, IsNotEmpty, IsNumber, MaxLength, MinLength } from 'class-validator'
+import { IDNumberType } from 'src/enum/id.number.type'
 
 export class CreateUserRequest {
-    id?: bigint;
+  id: bigint
 
-    @IsNotEmpty()
-    firstName: string;
-    
-    @IsNotEmpty()
-    lastName: string;
+  @IsNotEmpty()
+  firstName: string
 
-    @IsNotEmpty()
-    email: string;
+  @IsNotEmpty()
+  lastName: string
 
-    @IsNotEmpty()
-    @MinLength(10)
-    @MaxLength(50)
-    tel: string;
+  @IsEmail()
+  @IsNotEmpty()
+  email: string
 
-    @IsNotEmpty()
-    idNumber: string;
+  @IsNotEmpty()
+  @MinLength(10)
+  @MaxLength(30)
+  tel: string
 
-    @IsNotEmpty()
-    idNumberType: IDNumberType;
-    
-    img?: string;
+  @IsNotEmpty()
+  @MaxLength(50)
+  idNumber: string
 
-    description?: string;
+  @IsNotEmpty()
+  @IsEnum(IDNumberType)
+  idNumberType: IDNumberType
+
+  img?: string
+
+  description?: string
 }
