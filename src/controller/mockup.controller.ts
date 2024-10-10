@@ -4,11 +4,13 @@ import { loginResponse } from 'src/dto/mock/response/loginResponse'
 import { Response } from 'express'
 import { mailDto } from '../dto/email/mailDto'
 import { MockUpService } from 'src/service/mockup.service'
+import { Public } from 'src/auth/auth.guard'
 
 @Controller('mock')
 export class MockUpController {
   constructor(private readonly mockUpService: MockUpService) { }
 
+  @Public()
   @Post('login')
   check(@Body() loginDto: loginRequest, @Res() res: Response<loginResponse>) {
     const { email, password } = loginDto
@@ -20,6 +22,7 @@ export class MockUpController {
     }
   }
 
+  @Public()
   @Post("mail")
   postMail(@Body() mailDto: mailDto, @Res() res: Response) {
     return this.mockUpService.postMail(mailDto, res)
