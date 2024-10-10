@@ -1,4 +1,4 @@
-import { IsEmail, IsEnum, IsNotEmpty, IsNumber, MaxLength, MinLength } from 'class-validator'
+import { IsEmail, IsEnum, IsNotEmpty, MaxLength, MinLength } from 'class-validator'
 import { IDNumberType } from 'src/enum/id.number.type'
 
 export class CreateUserRequest {
@@ -20,6 +20,7 @@ export class CreateUserRequest {
   tel: string
 
   @IsNotEmpty()
+  @MinLength(10)
   @MaxLength(50)
   idNumber: string
 
