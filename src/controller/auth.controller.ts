@@ -79,7 +79,6 @@ export class AuthController {
   @Post("sign-out")
   async signOut(
     @User() user: Userpayload,
-    @Headers() headers: Record<string, string>,
     @Res() res: Response) {
     await this.authService.signOut(user)
     return res.status(HttpStatus.NO_CONTENT).json()

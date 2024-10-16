@@ -7,6 +7,7 @@ import { VerifyUserRequest } from 'src/dto/models/request/verify-user-request'
 import { Public } from 'src/auth/auth.guard'
 import { ForgotPasswordRequest } from 'src/dto/models/request/forgot.password.request'
 import { ResetPasswordRequest } from 'src/dto/models/request/reset.password.request'
+import { Language } from 'src/utils/language.decorator'
 
 @Controller('users')
 export class UsersController {
@@ -16,9 +17,8 @@ export class UsersController {
   @Post('create-user')
   async createUser(
     @Body() createUserRequest: CreateUserRequest,
-    @Headers() headers: Record<string, string>,
+    @Language() lang: string,
     @Res() res: Response<BaseResponse>) {
-    const lang = headers['accept-language']
     var response: BaseResponse = {
       code: HttpStatus.CREATED.toString(),
       data: await this.userService.createUser(createUserRequest, lang),
@@ -32,7 +32,6 @@ export class UsersController {
   @Post('verify')
   async verifyUser(
     @Body() verifyUserRequest: VerifyUserRequest,
-    @Headers() headers: Record<string, string>,
     @Res() res: Response<BaseResponse>) {
     const response = await this.userService.verifyUsers(verifyUserRequest.token)
     res.status(HttpStatus.OK).json(new BaseResponse(
@@ -47,9 +46,8 @@ export class UsersController {
   @Post("forgot-password")
   async forgotPassword(
     @Body() forgotPasswordRequest: ForgotPasswordRequest,
-    @Headers() headers: Record<string, string>,
+    @Language() lang: string,
     @Res() res: Response<BaseResponse>) {
-    const lang = headers['accept-language']
     const { email } = forgotPasswordRequest
     this.userService.forgotPassword(email, lang)
     return res.status(HttpStatus.NO_CONTENT).json(new BaseResponse(
@@ -64,9 +62,8 @@ export class UsersController {
   @Post("reset-password")
   async resetPassword(
     @Body() resetPasswordRequest: ResetPasswordRequest,
-    @Headers() headers: Record<string, string>,
+    @Language() lang: string,
     @Res() res: Response<BaseResponse>) {
-    const lang = headers['accept-language']
     const response = await this.userService.resetPassword(resetPasswordRequest)
     return res.status(HttpStatus.OK).json(new BaseResponse(
       "0000",
