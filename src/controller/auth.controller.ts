@@ -1,23 +1,22 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpException, HttpStatus, Patch, Post, Query, Request, Res, UnauthorizedException, UseGuards } from '@nestjs/common'
+import { Body, Controller, Headers, HttpException, HttpStatus, Post, Query, Req, Res, } from '@nestjs/common'
 import { AuthService } from '../service/auth.service'
 import { TokenResponse } from 'src/dto/response/token.response'
 import { TokenModel } from 'src/dto/models/token.model'
-import { UsersAccountResponse } from 'src/dto/response/user.response'
-import { UserAccountModel } from 'src/dto/models/user.model'
-import { ForgotPasswordRequest } from 'src/dto/models/request/forgot.password.user.request'
-import { ForgotPasswordResponse } from 'src/dto/response/forgot.password.response'
-import { ForgotPasswordModel } from 'src/dto/models/forgot.password.model'
-import { SignInRequest } from 'src/dto/models/request/signin-request'
-import { Response } from 'express'
+import { SignInRequest } from 'src/dto/models/request/sign-in-request'
+import { Request, Response } from 'express'
 import { BaseResponse } from 'src/dto/response/base-response'
 import { Public } from 'src/auth/auth.guard'
+import { User } from 'src/utils/user.decorator'
+import { Userpayload } from 'src/dto/models/userPayload'
 
 @Controller('authentication')
 export class AuthController {
-  constructor(private authService: AuthService) { }
+  constructor(
+    private authService: AuthService
+  ) { }
 
   @Public()
-  @Post('signIn')
+  @Post('sign-in')
   async signIn(@Body() signInRequest: SignInRequest, @Res() res: Response<BaseResponse>) {
     const { email, password } = signInRequest
     try {
@@ -77,7 +76,16 @@ export class AuthController {
   //   }
   // }
 
-  @Patch('refreshAccessToken')
+  @Post("sign-out")
+  async signOut(
+    @User() user: Userpayload,
+    @Res() res: Response) {
+    await this.authService.signOut(user)
+    return res.status(HttpStatus.NO_CONTENT).json()
+  }
+
+
+  @Post('refresh-access-token')
   async refreshAccessToken(@Query('userId') userId: number): Promise<TokenResponse> {
     var response = new TokenResponse()
     try {
@@ -113,33 +121,4 @@ export class AuthController {
     }
   }
 
-  @Patch("forgotPassword")
-  async forgotPassword(@Body() forgotPasswordRequest: ForgotPasswordRequest): Promise<ForgotPasswordResponse> {
-    var response = new ForgotPasswordResponse()
-
-    try {
-      if (forgotPasswordRequest) {
-        response.code = HttpStatus.BAD_REQUEST.toString()
-        response.data = null
-        response.message = `forgotPasswordRequest is null`
-        response.cause = null
-
-        throw new HttpException(response, HttpStatus.BAD_REQUEST)
-      }
-
-      let responseForgotPasswordData = new ForgotPasswordModel()
-
-      response.code = HttpStatus.OK.toString()
-      response.data = [responseForgotPasswordData]
-      response.message = "Re-new password success"
-      response.cause = null
-      return response
-    } catch (error) {
-      response.code = error.code
-      response.data = null
-      response.message = error.message
-      response.cause = error.cause ?? null
-      return response
-    }
-  }
 }

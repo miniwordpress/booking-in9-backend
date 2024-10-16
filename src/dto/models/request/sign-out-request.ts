@@ -1,7 +1,9 @@
 import { IsJWT, IsNotEmpty } from 'class-validator'
 
-export class VerifyUserRequest {
+export class SignOutRequest {
+
   @IsNotEmpty()
   @IsJWT()
   token: string
+
 }

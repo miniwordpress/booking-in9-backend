@@ -22,10 +22,11 @@ export class HttpExceptionFilter implements ExceptionFilter {
         message: exception.message,
       })
     } else {
+      const msgError = exception.getResponse()['message'] ? exception.getResponse()['message'][0] : exception.getResponse()
       response.status(status).json({
         code: "BAD000",
         data: null,
-        cause: process.env.JWT_SECRET != "production" ? exception.getResponse()["message"][0] : null,
+        cause: process.env.NODE_ENV != "production" ? msgError : null,
         message: exception.message,
       })
     }

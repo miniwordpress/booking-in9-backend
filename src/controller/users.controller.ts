@@ -1,59 +1,76 @@
-import { Controller, Get, Post, Query, Delete, HttpStatus, Body, Patch, HttpException, Res } from '@nestjs/common'
-import { Response } from 'express'
+import { Controller, Post, HttpStatus, Body, Res, Req, Headers } from '@nestjs/common'
+import { Response, Request } from 'express'
 import { UsersService } from '../service/users.service'
 import { CreateUserRequest } from '../dto/models/request/create.user.request'
-import { UsersAccountResponse } from 'src/dto/response/user.response'
-import { UserAccountModel } from 'src/dto/models/user.model'
-import { UpdateUserRequest } from 'src/dto/models/request/update.user.request'
 import { BaseResponse } from 'src/dto/response/base-response'
 import { VerifyUserRequest } from 'src/dto/models/request/verify-user-request'
 import { Public } from 'src/auth/auth.guard'
+import { ForgotPasswordRequest } from 'src/dto/models/request/forgot.password.request'
+import { ResetPasswordRequest } from 'src/dto/models/request/reset.password.request'
+import { Language } from 'src/utils/language.decorator'
 
 @Controller('users')
 export class UsersController {
   constructor(private readonly userService: UsersService) { }
 
   @Public()
-  @Post('createUser')
-  async createUser(@Body() createUserDto: CreateUserRequest, @Res() res: Response<BaseResponse>) {
-    try {
-      var response: BaseResponse = {
-        code: HttpStatus.CREATED.toString(),
-        data: await this.userService.createUser(createUserDto, res),
-        message: "Create user success",
-        cause: null
-      }
-      return res.status(HttpStatus.CREATED).json(response)
-    } catch (error) {
-      var response: BaseResponse = {
-        code: "US001",
-        data: null,
-        message: error.message,
-        cause: null
-      }
-      return res.status(HttpStatus.BAD_REQUEST).json(response)
+  @Post('create-user')
+  async createUser(
+    @Body() createUserRequest: CreateUserRequest,
+    @Language() lang: string,
+    @Res() res: Response<BaseResponse>) {
+    var response: BaseResponse = {
+      code: HttpStatus.CREATED.toString(),
+      data: await this.userService.createUser(createUserRequest, lang),
+      message: "Create user success",
+      cause: null
     }
+    return res.status(HttpStatus.CREATED).json(response)
   }
 
   @Public()
   @Post('verify')
-  async verifyUser(@Body() verifyUserRequest: VerifyUserRequest, @Res() res: Response<BaseResponse>) {
-    try {
-      const response = await this.userService.verifyUsers(verifyUserRequest.token)
-      res.status(HttpStatus.OK).json(new BaseResponse(
-        "000",
-        null,
-        response,
-        null
-      ))
-    } catch (error) {
-      res.status(HttpStatus.BAD_REQUEST).json(new BaseResponse(
-        "000",
-        null,
-        error.message,
-        null
-      ))
-    }
+  async verifyUser(
+    @Body() verifyUserRequest: VerifyUserRequest,
+    @Res() res: Response<BaseResponse>) {
+    const response = await this.userService.verifyUsers(verifyUserRequest.token)
+    res.status(HttpStatus.OK).json(new BaseResponse(
+      "000",
+      null,
+      response,
+      null
+    ))
+  }
+
+  @Public()
+  @Post("forgot-password")
+  async forgotPassword(
+    @Body() forgotPasswordRequest: ForgotPasswordRequest,
+    @Language() lang: string,
+    @Res() res: Response<BaseResponse>) {
+    const { email } = forgotPasswordRequest
+    this.userService.forgotPassword(email, lang)
+    return res.status(HttpStatus.NO_CONTENT).json(new BaseResponse(
+      "0000",
+      null,
+      email,
+      null
+    ))
+  }
+
+  @Public()
+  @Post("reset-password")
+  async resetPassword(
+    @Body() resetPasswordRequest: ResetPasswordRequest,
+    @Language() lang: string,
+    @Res() res: Response<BaseResponse>) {
+    const response = await this.userService.resetPassword(resetPasswordRequest)
+    return res.status(HttpStatus.OK).json(new BaseResponse(
+      "0000",
+      response,
+      null,
+      null
+    ))
   }
 
   // @Get('getUsersAccount')
@@ -237,35 +254,4 @@ export class UsersController {
   //   }
   // }
 
-  //TODO:waith for confirm
-  @Post("sendVerifyLinkRegister")
-  async sendVerifyLinkRegister(@Query('userId') userId: bigint, @Query('language') language: string, @Res() res: Response): Promise<UsersAccountResponse> {
-    var response = new UsersAccountResponse()
-
-    if (userId == null || userId == undefined) {
-      response.code = HttpStatus.BAD_REQUEST.toString()
-      response.data = null
-      response.message = `User id null or undefined`
-      response.cause = null
-
-      throw new HttpException(response, HttpStatus.BAD_REQUEST)
-    }
-
-    try {
-      //await this.userService.sendVerifyRegister(userId, language, res);
-
-      response.code = HttpStatus.OK.toString()
-      response.data = null
-      response.message = "Send verify link register success"
-      response.cause = null
-      return response
-    } catch (error) {
-      response.code = error.code
-      response.data = null
-      response.message = error.message
-      response.cause = error.cause ?? null
-
-      return response
-    }
-  }
 }

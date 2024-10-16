@@ -1,4 +1,4 @@
-import { Inject, Injectable, UnauthorizedException } from '@nestjs/common'
+import { BadRequestException, Inject, Injectable, UnauthorizedException } from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Token } from '../entity/token'
@@ -35,8 +35,8 @@ export class AuthService {
     return this.jwtService.decode(token)
   }
 
-  async generateToken(user: Users): Promise<string> {
-    const payload = { user: user.id, type: "VERIFY_TOKEN" }
+  async generateTokenVerifyUser(user: Users): Promise<string> {
+    const payload = { user: user.id, type: TokenType.VERIFY_REGISTER }
     const token = new Token()
     token.token = this.jwtService.sign(payload, { expiresIn: '2h' })
     token.user = user
@@ -49,45 +49,60 @@ export class AuthService {
     return token.token
   }
 
+  async generateTokenResetPassword(user: Users): Promise<string> {
+    const payload = { user: user.id, type: TokenType.RESET_PASSWORD }
+    const token = new Token()
+    token.token = this.jwtService.sign(payload, { expiresIn: '2h' })
+    token.user = user
+    token.type = TokenType.RESET_PASSWORD
+    token.expire_at = new Date(Date.now() + 60 * 60 * 1000)
+    token.refresh_time = new Date(Date.now() + (60 * 60 * 1000) * 2)
+    token.created_at = new Date()
+    token.used_at = new Date()
+    await this.tokenRepository.save(token)
+    return token.token
+  }
+
   async signIn(
     email: string,
     password: string,
   ): Promise<SignInResponse> {
-    try {
-      const user = await this.userRepository.findOne({ where: { email }, relations: ['token'] })
-      if (user.status != UsersStatus.ACTIVE) {
-        throw new UnauthorizedException("Sign in failed because status not active")
-      }
-      if (!user || !(await bcrypt.compare(password, user.password))) {
-        throw new UnauthorizedException("Failed to sign in: Invalid email or password")
-      }
-      if (user.token) {
-        await this.deleteToken(user)
-      }
-      const payload: { user: Userpayload } = { user: { id: user.id, email: user.email, role: user.role } }
-      const accessToken = await this.jwtService.signAsync(payload, { expiresIn: '1h' })
-      this.tokenRepository.save({
-        token: accessToken,
-        user: user,
-        type: TokenType.ACCESS_TOKEN,
-        expire_at: new Date(Date.now() + 60 * 60 * 1000),
-        refresh_time: new Date(Date.now() + (60 * 60 * 1000) * 2),
-        created_at: new Date(),
-        used_at: new Date(),
-      })
-      return new SignInResponse(user, accessToken)
-    } catch (error) {
-      throw new UnauthorizedException(error.message)
+    const user = await this.userRepository.findOne({ where: { email }, relations: ['token'] })
+    if (user.status != UsersStatus.ACTIVE) {
+      throw new UnauthorizedException("Sign in failed because status not active")
     }
+    if (!user || !(await bcrypt.compare(password, user.password))) {
+      throw new UnauthorizedException("Failed to sign in: Invalid email or password")
+    }
+    if (user.token) {
+      await this.deleteToken(user)
+    }
+    const payload: { user: Userpayload } = { user: { id: user.id, email: user.email, role: user.role } }
+    const accessToken = await this.jwtService.signAsync(payload, { expiresIn: '1h' })
+    this.tokenRepository.save({
+      token: accessToken,
+      user: user,
+      type: TokenType.ACCESS_TOKEN,
+      expire_at: new Date(Date.now() + 60 * 60 * 1000),
+      refresh_time: new Date(Date.now() + (60 * 60 * 1000) * 2),
+      created_at: new Date(),
+      used_at: new Date(),
+    })
+    return new SignInResponse(user, accessToken)
   }
 
-  // async signOut(userId: number): Promise<void> {
-  //   try {
-  //     return await this.deleteToken(userId, TokenType.ACCESS_TOKEN)
-  //   } catch (error) {
-  //     throw new UnauthorizedException('Failed to sign out', error.message)
-  //   }
-  // }
+  async signOut(user: Userpayload): Promise<string> {
+    try {
+      const findToken = await this.userRepository.findOne({ where: { id: user.id, token: { type: TokenType.ACCESS_TOKEN } }, relations: ['token'] })
+      if (!findToken) {
+        throw new BadRequestException("Not found token")
+      }
+      this.tokenRepository.delete(findToken.token.id)
+    } catch (error) {
+      throw new UnauthorizedException('Failed to sign out')
+    }
+    return "Success"
+  }
 
   async refreshAccessToken(userId: number): Promise<Token> {
     try {

@@ -1,7 +1,7 @@
 import { Injectable, NestMiddleware, Logger } from '@nestjs/common'
 import { Request, Response, NextFunction } from 'express'
 import { v4 as uuidv4 } from 'uuid'
-const KEY_MASKING = ['authorization']
+const KEY_MASKING = ['authorization', 'token', 'password']
 
 @Injectable()
 export class LoggerMiddleware implements NestMiddleware {
@@ -9,6 +9,7 @@ export class LoggerMiddleware implements NestMiddleware {
 
   private getRequestLog(requestId: string, req: Request) {
     const { method, originalUrl } = req
+    if (!req.headers['accept-language']) { req.headers['accept-language'] = "th" }
     this.logger.log(`Request path: [${method} ${originalUrl}] Datetime: ${new Date().toLocaleString("en-GB")} [Request] Request ID: ${requestId}`)
     this.logger.log(`Headers: ${JSON.stringify(maskMultipleKeysInComplexObj(req.headers), null, 2)}`)
     this.logger.log(`Body: ${JSON.stringify(maskMultipleKeysInComplexObj(req.body), null, 2)}`)
@@ -41,15 +42,21 @@ export class LoggerMiddleware implements NestMiddleware {
         chunkBuffers.push(Buffer.from(resArgs[0]))
       }
       const body = Buffer.concat(chunkBuffers).toString('utf8')
+      let tmpBody = null
+      try {
+        tmpBody = JSON.parse(body)
+      } catch (e) {
+        tmpBody = body || {}
+      }
       const responseLog = {
         response: {
           headers: res.getHeaders(),
           statusCode: res.statusCode,
-          body: JSON.parse(body) || body || {},
+          body: tmpBody,
         },
       }
       this.logger.log(`[Response] Datetime: ${new Date().toLocaleString("en-GB")} Status: ${res.statusCode} Request ID: ${requestId}`)
-      this.logger.log(`Data: ${JSON.stringify(maskMultipleKeysInComplexObj(JSON.parse(body) || body || {}), null, 2)}`)
+      this.logger.log(`Data: ${JSON.stringify(maskMultipleKeysInComplexObj(tmpBody), null, 2)}`)
       rawResponseEnd.apply(res, resArgs)
       return responseLog as unknown as Response
     }
@@ -73,7 +80,7 @@ function maskMultipleKeysInComplexObj(data: any): any {
       if (typeof data[key] === 'object' && data[key] !== null) {
         newData[key] = maskMultipleKeysInComplexObj(data[key])
       } else {
-        newData[key] = KEY_MASKING.includes(key) ? "[x]" : data[key]
+        newData[key] = KEY_MASKING.some(item => key.toLowerCase().includes(item)) ? "[x]" : data[key]
       }
     }
   }
