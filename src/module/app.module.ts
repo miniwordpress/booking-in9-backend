@@ -26,22 +26,16 @@ import { LoggerMiddleware } from 'src/logger/logger.middleware'
     MailerModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (configService: ConfigService) => {
-        return ({
-          transport: {
-            host: configService.get<string>('MAIL_HOST'),
-            port: configService.get<number>('MAIL_PORT'),
-            secure: false,
-            // auth: {
-            //   user: configService.get<string>('MAIL_USER'),
-            //   pass: configService.get<string>('MAIL_PASSWORD'),
-            // },
-          },
-          defaults: {
-            from: '"No Reply" <noreply@example.com>',
-          },
-        })
-      },
+      useFactory: (configService: ConfigService) => ({
+        transport: {
+          host: configService.get<string>('MAIL_HOST'),
+          port: configService.get<number>('MAIL_PORT'),
+          secure: false,
+        },
+        defaults: {
+          from: '"No Reply" <noreply@example.com>',
+        },
+      }),
     }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
@@ -74,16 +68,15 @@ import { LoggerMiddleware } from 'src/logger/logger.middleware'
   ],
   controllers: [AppController],
   providers: [
-    AppService, {
+    {
       provide: APP_GUARD,
       useClass: AuthGuard,
-    }
+    },
+    AppService
   ],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer
-      .apply(LoggerMiddleware)
-      .forRoutes('*')
+    consumer.apply(LoggerMiddleware).forRoutes('*')
   }
 }

@@ -8,8 +8,6 @@ import { ConfigModule, ConfigService } from '@nestjs/config'
 import { Users } from 'src/entity/users'
 import { JwtModule } from '@nestjs/jwt'
 import { jwtConstants } from 'src/auth/constants'
-import { APP_GUARD } from '@nestjs/core'
-import { AuthGuard } from 'src/auth/auth.guard'
 
 @Module({
   imports: [
@@ -24,8 +22,7 @@ import { AuthGuard } from 'src/auth/auth.guard'
         },
       }),
     }),
-    TypeOrmModule.forFeature([Token, Users]),
-  ],
+    TypeOrmModule.forFeature([Token, Users])],
   providers: [AuthService],
   controllers: [AuthController],
   exports: [AuthService],

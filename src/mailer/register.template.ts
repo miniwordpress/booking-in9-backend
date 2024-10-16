@@ -1,8 +1,10 @@
 import { RegisterMailer } from "src/dto/email/registerDto"
+import * as dotenv from 'dotenv'
+dotenv.config()
 
 export default function RegisterTemplate(content: RegisterMailer) {
   const { locale, password, email, token } = content
-  const endpoint = `http://localhost:4000/verifyRegister?token=${token}`
+  const endpoint = `${process.env.ENDPOINT_FRONTEND}/verifyRegister?token=${token}`
   if (locale == "th") {
     return `<h1 font-size: 16px>ยืนยันอีเมล</h1>
                   <br>
@@ -27,18 +29,20 @@ export default function RegisterTemplate(content: RegisterMailer) {
                     <br>
                     <p font-size: 16px>ทีมงาน IN.9.CO</p>`
   } else {
-    `<h1 font-size: 16px>Verify Emai</h1>
-                    <br>
-                    <p font-size: 16px>You have created an account using the following email: ${email}<\p>
-                    <br>
-                    <p font-size: 16px>Click the "Sign In" button below to confirm your email and log into your account.<\p>
-                    <br>
-                    <br>
-                    <h1 font-size: 16px>Please login</h1>
+    return `<h1 font-size: 16px>Verify Emai</h1>
+                  <br>
+                  <p font-size: 16px>You have created an account using the following email: ${email}<\p>
+                  <br>
+                  <p font-size: 16px>Click the "Sign In" button below to confirm your email and log into your account.<\p>
+                  <br>
+                  <br>
+                  <h1 font-size: 16px>Please login</h1>
                     <br>
                     <p font-size: 16px>Email: ${email}</p>
                     <br>
                     <p font-size: 16px>Password: ${password}</p>
+                     <br>
+                     <br>
                     <a href="${endpoint}" style="display: inline-block; padding: 10px 20px; font-size: 16px; color: white; background-color: #13D440; text-decoration: none; border-radius: 5px;">
                       Login in9.co
                     </a>
@@ -48,6 +52,4 @@ export default function RegisterTemplate(content: RegisterMailer) {
                     <br>
                     <p font-size: 16px>Team IN.9.CO</p>`
   }
-
-
 }
