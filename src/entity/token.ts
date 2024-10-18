@@ -1,31 +1,31 @@
-import { Entity, Column, PrimaryGeneratedColumn, OneToOne, JoinColumn } from 'typeorm';
-import { Users } from './users';
-import { TokenType } from '../enum/token.type';
+import { Entity, Column, PrimaryGeneratedColumn, OneToOne, JoinColumn } from 'typeorm'
+import { Users } from './users'
+import { TokenType } from '../enum/token.type'
 
 @Entity()
 export class Token {
   @PrimaryGeneratedColumn()
-  id: number;
+  id: number
 
   @Column({ type: 'text', nullable: false })
-  token: string;
+  token: string
 
-  @OneToOne(() => Users, (usersAccount) => usersAccount.token,{cascade: true})
+  @OneToOne(() => Users, (user) => user.token, { onDelete: 'CASCADE' })
   @JoinColumn({ name: "user_id" })
-  user: Users;
+  user: Users
 
   @Column({ length: 100, nullable: false })
-  type: TokenType; 
+  type: TokenType
 
-  @Column({nullable: false})
-  expire_at: Date;
+  @Column({ nullable: false })
+  expire_at: Date
 
-  @Column({nullable: true})
-  refresh_time: Date;
+  @Column({ nullable: true })
+  refresh_time: Date
 
-  @Column({nullable: false})
-  created_at: Date;
+  @Column({ nullable: false })
+  created_at: Date
 
-  @Column({nullable: false})
-  used_at: Date;
+  @Column({ nullable: false })
+  used_at: Date
 }

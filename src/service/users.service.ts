@@ -1,24 +1,27 @@
-import { BadRequestException, Logger, HttpStatus, Injectable, InternalServerErrorException, NotFoundException, Req, Res, UnauthorizedException, HttpException } from '@nestjs/common'
-import { Response, Request } from 'express'
+import { BadRequestException, Logger, HttpStatus, Injectable, InternalServerErrorException, NotFoundException, UnauthorizedException, HttpException, ConflictException } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Not, Repository } from 'typeorm'
 import { Users } from '../entity/users'
-import { CreateUserRequest } from '../dto/models/request/create.user.request'
+import { CreateUserRequest } from '../dto/models/request/create-user.request'
 import encryptedPassword from '../utils/encrypted.password'
-import { UpdateUserRequest } from 'src/dto/models/request/update.user.request'
+import { UpdateUserRequest } from 'src/dto/models/request/update-user.request'
 import { Token } from 'src/entity/token'
 import { AuthService } from './auth.service'
-import { ForgotPasswordRequest } from 'src/dto/models/request/forgot.password.request'
 import { MailerService } from '@nestjs-modules/mailer'
 import RegisterTemplate from 'src/mailer/register.template'
 import { UsersStatus } from 'src/enum/users-status'
 import { UsersRole } from 'src/enum/users-role'
 import { TokenType } from 'src/enum/token.type'
 import ForgotTemplate from 'src/mailer/forgot.template'
-import { ResetPasswordRequest } from 'src/dto/models/request/reset.password.request'
-import * as bcrypt from 'bcrypt'
-import { UsersResponse } from 'src/dto/response/users-response'
-
+import { ResetPasswordRequest } from 'src/dto/models/request/reset-password.request'
+import { UsersResponse } from 'src/dto/response/users.response'
+import { UserDeailResponse } from 'src/dto/response/user-detail.response'
+import validator from 'validator'
+import { WeakPasswordException } from 'src/exception/weak-password.exception'
+import { UserNotFoundException } from 'src/exception/user-not-found.exception'
+import { TokenExpireException } from 'src/exception/token-expire.exception'
+import { EmailExistingException } from 'src/exception/email-already.exception'
+import { UserNotActiveException } from 'src/exception/user-not-active.exception'
 
 @Injectable()
 export class UsersService {
@@ -35,47 +38,38 @@ export class UsersService {
   async createUser(createUserRequest: CreateUserRequest, lang: string): Promise<string> {
     const { firstName, lastName, email, tel, idNumber, idNumberType, img, description } = createUserRequest
     try {
-      var responseFindUser = await this.usersRepository.findOne({
-        where: { email }
+      const passwordGenerated = this.generatePassword()
+      const user = {
+        first_name: firstName,
+        last_name: lastName,
+        email: email,
+        tel: tel,
+        id_number: idNumber,
+        id_number_type: idNumberType,
+        img: img,
+        status: UsersStatus.PRE_ACTIVE,
+        role: UsersRole.MERCHANT,
+        description: description,
+        password: encryptedPassword(passwordGenerated),
+      } as Users
+      const saveUserData = await this.usersRepository.save(user)
+      const respToken = await this.authService.generateTokenVerifyUser(saveUserData)
+      await this.mailerService.sendMail({
+        to: user.email,
+        subject: lang == "th" ? "IN.9.CO – ยืนยันบัญชีผู้ใช้งาน" : "IN.9.CO – Verify Account",
+        html: RegisterTemplate({ locale: lang, password: passwordGenerated, email: user.email, token: respToken })
       })
-      if (!responseFindUser) {
-        const passwordGenerated = this.generatePassword()
-        const userAccount = {
-          first_name: firstName,
-          last_name: lastName,
-          email: email,
-          tel: tel,
-          id_number: idNumber,
-          id_number_type: idNumberType,
-          img: img,
-          status: UsersStatus.PRE_ACTIVE,
-          role: UsersRole.MERCHANT,
-          description: description,
-          password: encryptedPassword(passwordGenerated),
-          created_at: new Date(),
-          updated_at: new Date(),
-        }
-        try {
-          const saveUserData = await this.usersRepository.save(userAccount)
-          const respToken = await this.authService.generateTokenVerifyUser(saveUserData)
-          await this.mailerService.sendMail({
-            to: userAccount.email,
-            subject: lang == "th" ? "IN.9.CO – ยืนยันบัญชีผู้ใช้งาน" : "IN.9.CO – Verify Account",
-            html: RegisterTemplate({ locale: lang, password: passwordGenerated, email: userAccount.email, token: respToken })
-          })
-        } catch (error) {
-          throw new InternalServerErrorException("Some thing went wrong!")
-        }
-      } else {
-        throw new BadRequestException(`The user ${email} exists`)
-      }
-      return "Success"
     } catch (error) {
-      throw new HttpException(
-        error.message || "Internal Server Error",
-        error.status || HttpStatus.INTERNAL_SERVER_ERROR
-      )
+      switch (error?.code) {
+        case '23505': // unique statement
+          throw new EmailExistingException()
+        default:
+          throw new InternalServerErrorException(
+            error?.message || 'An unexpected error occurred',
+          )
+      }
     }
+    return "Success"
   }
 
   async verifyUsers(token: string): Promise<string> {
@@ -92,7 +86,7 @@ export class UsersService {
           this.usersRepository.update(findToken.user.id, user)
           this.authService.deleteToken(user)
         } else {
-          throw new BadRequestException("Token expire.")
+          throw new TokenExpireException()
         }
       } else {
         throw new BadRequestException("Something went wrong.")
@@ -100,8 +94,8 @@ export class UsersService {
       return "verify success"
     } catch (error) {
       throw new HttpException(
-        error.message || "Internal Server Error",
-        error.status || HttpStatus.INTERNAL_SERVER_ERROR
+        error.message || 'Internal Server Error',
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
       )
     }
   }
@@ -112,8 +106,8 @@ export class UsersService {
       return users.map(user => user.toMapperUser())
     } catch (error) {
       throw new HttpException(
-        error.message || "Internal Server Error",
-        error.status || HttpStatus.INTERNAL_SERVER_ERROR
+        error.message || 'Internal Server Error',
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
       )
     }
   }
@@ -123,14 +117,15 @@ export class UsersService {
       const user = await this.usersRepository.findOneBy({ id })
 
       if (!user) {
-        throw new HttpException('User not found', HttpStatus.NOT_FOUND)
+        throw new UserNotFoundException()
       }
 
       return user.toMapperUserDetail()
     } catch (error) {
-      const errorMessage = error.message || 'Internal Server Error'
-      const errorStatus = error.status || HttpStatus.INTERNAL_SERVER_ERROR
-      throw new HttpException(errorMessage, errorStatus)
+      throw new HttpException(
+        error.message || 'Internal Server Error',
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      )
     }
   }
 
@@ -138,43 +133,45 @@ export class UsersService {
   async updateUser(
     id: number,
     updateUserRequest: UpdateUserRequest,
-  ): Promise<Users | null> {
+  ): Promise<UserDeailResponse | null> {
     try {
-      const existingUser = await this.usersRepository.findOneBy({ id })
+      const user = await this.usersRepository.findOneBy({ id })
 
-      if (!existingUser) {
-        throw new Error('User account not found')
+      if (!user) {
+        throw new UserNotFoundException()
       }
 
-      updateUserRequest.firstName ? existingUser.first_name = updateUserRequest.firstName : existingUser.first_name
-      updateUserRequest.lastName ? existingUser.last_name = updateUserRequest.lastName : existingUser.last_name
-      updateUserRequest.email ? existingUser.email = updateUserRequest.email : existingUser.email
-      updateUserRequest.password ? existingUser.password = updateUserRequest.password : existingUser.password
-      updateUserRequest.tel ? existingUser.tel = updateUserRequest.tel : existingUser.tel
-      updateUserRequest.img ? existingUser.img = updateUserRequest.img : existingUser.img
-      updateUserRequest.status ? existingUser.status = updateUserRequest.status : existingUser.status
-      updateUserRequest.role ? existingUser.role = updateUserRequest.role : existingUser.role
-      existingUser.updated_at = new Date()
+      user.first_name = updateUserRequest.firstName
+      user.last_name = updateUserRequest.lastName
+      user.email = updateUserRequest.email
+      user.tel = updateUserRequest.tel
+      user.img = updateUserRequest.img
+      user.id_number = updateUserRequest.idNumber
+      user.id_number_type = updateUserRequest.idNumberType
+      user.description = updateUserRequest.description
 
-      const updatedUser = await this.usersRepository.save(existingUser)
-      return updatedUser
+      const updatedUser = await this.usersRepository.save(user)
+      return updatedUser.toMapperUserDetail()
     } catch (error) {
-      throw error
+      switch (error?.code) {
+        case '23505': // unique statement
+          throw new EmailExistingException()
+        default:
+          throw new InternalServerErrorException(
+            error?.message || 'An unexpected error occurred',
+          )
+      }
     }
   }
 
   async deleteUser(id: number): Promise<void> {
     try {
-      const userAccount = await this.usersRepository.findOne({ where: { id } })
-
-      if (!userAccount) {
-        throw new Error('User account not found')
-      }
-
-      await this.authService.deleteToken(userAccount)
-      await this.usersRepository.delete(id.toString())
+      await this.usersRepository.delete(id)
     } catch (error) {
-      throw error
+      throw new HttpException(
+        error.message || 'Internal Server Error',
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      )
     }
   }
 
@@ -182,10 +179,10 @@ export class UsersService {
     try {
       const user = await this.usersRepository.findOne({ where: { email }, relations: ['token'] })
       if (!user) {
-        throw new NotFoundException("Not found account")
+        throw new UserNotFoundException()
       }
       if (user.status != UsersStatus.ACTIVE) {
-        throw new UnauthorizedException("User are not active")
+        throw new UserNotActiveException()
       }
       if (user.token) {
         await this.authService.deleteToken(user)
@@ -200,8 +197,8 @@ export class UsersService {
       return "send email success"
     } catch (error) {
       throw new HttpException(
-        error.message || "Internal Server Error",
-        error.status || HttpStatus.INTERNAL_SERVER_ERROR
+        error.message || 'Internal Server Error',
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
       )
     }
   }
@@ -209,13 +206,16 @@ export class UsersService {
   async resetPassword(resetPasswordRequest: ResetPasswordRequest): Promise<string> {
     const { token, newPassword } = resetPasswordRequest
     try {
+      if (!this.isStrongPassword(newPassword)) {
+        throw new WeakPasswordException()
+      }
       this.authService.verifyToken(token)
       const findToken = await this.tokenRepository.findOne({
         where: { token: token, type: TokenType.RESET_PASSWORD },
         relations: ['user']
       })
       if (!findToken) {
-        throw new BadRequestException("Not found token")
+        throw new TokenExpireException()
       }
       if (findToken.expire_at.getTime() > new Date().getTime()) {
         const { user } = findToken
@@ -223,18 +223,18 @@ export class UsersService {
         this.usersRepository.update(findToken.user.id, user)
         this.authService.deleteToken(user)
       } else {
-        throw new BadRequestException("Token expire.")
+        throw new TokenExpireException()
       }
     } catch (error) {
       throw new HttpException(
-        error.message || "Internal Server Error",
-        error.status || HttpStatus.INTERNAL_SERVER_ERROR
+        error.message || 'Internal Server Error',
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
       )
     }
     return "Success"
   }
 
-  generatePassword(): string {
+  private generatePassword(): string {
     const length = 10
     const charset = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()'
     let passwordValue = ''
@@ -243,6 +243,19 @@ export class UsersService {
       passwordValue += charset.charAt(at)
     }
     return passwordValue
+  }
+
+  private isStrongPassword(password: string): boolean {
+    return (
+      password.length >= 8 &&
+      validator.isStrongPassword(password, {
+        minLength: 8,
+        minLowercase: 1,
+        minUppercase: 1,
+        minNumbers: 1,
+        minSymbols: 1,
+      })
+    )
   }
 
 }

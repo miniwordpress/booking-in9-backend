@@ -1,4 +1,4 @@
-import { BadRequestException, Inject, Injectable, UnauthorizedException } from '@nestjs/common'
+import { BadRequestException, Inject, Injectable, InternalServerErrorException, UnauthorizedException } from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Token } from '../entity/token'
@@ -6,10 +6,14 @@ import { Repository } from 'typeorm'
 import { Users } from '../entity/users'
 import { TokenType } from '../enum/token.type'
 import * as bcrypt from 'bcrypt'
-import { SignInResponse } from 'src/dto/response/signin-response'
+import { SignInResponse } from 'src/dto/response/sign-in.response'
 import { UsersStatus } from 'src/enum/users-status'
 import { UserContext } from 'src/dto/models/user-context'
 import { v4 as uuidv4 } from 'uuid'
+import { TokenExpireException } from 'src/exception/token-expire.exception'
+import { InvalidTokenVerifyException } from 'src/exception/invalid-token.exception'
+import { UserNotActiveException } from 'src/exception/user-not-active.exception'
+import { SignInFailedException } from 'src/exception/sign-in-fail.exception'
 
 @Injectable()
 export class AuthService {
@@ -27,7 +31,10 @@ export class AuthService {
     try {
       return this.jwtService.verify(token)
     } catch (error) {
-      throw new UnauthorizedException('Failed to verify token', error.message)
+      if (error.name === 'TokenExpiredError') {
+        throw new TokenExpireException()
+      }
+      throw new InvalidTokenVerifyException()
     }
   }
 
@@ -75,10 +82,10 @@ export class AuthService {
   ): Promise<SignInResponse> {
     const user = await this.userRepository.findOne({ where: { email }, relations: ['token'] })
     if (user.status != UsersStatus.ACTIVE) {
-      throw new UnauthorizedException("Sign in failed because status not active")
+      throw new UserNotActiveException()
     }
     if (!user || !(await bcrypt.compare(password, user.password))) {
-      throw new UnauthorizedException("Failed to sign in: Invalid email or password")
+      throw new SignInFailedException()
     }
     if (user.token) {
       await this.deleteToken(user)
@@ -105,7 +112,7 @@ export class AuthService {
       const findUser = await this.userRepository.findOne({ where: { id: user.id } })
       if (findUser) this.deleteToken(findUser)
     } catch (error) {
-      throw new UnauthorizedException('Failed to sign out')
+      throw new InternalServerErrorException('Some thing went wrong!')
     }
     return "Success"
   }
