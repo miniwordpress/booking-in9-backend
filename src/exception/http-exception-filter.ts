@@ -22,7 +22,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
         message: exception.message,
       })
     } else {
-      const msgError = exception.getResponse()['message'] ? exception.getResponse()['message'][0] : exception.getResponse()
+      const msgError = exception.cause ? exception.cause : null
       response.status(status).json({
         code: "BAD000",
         data: null,

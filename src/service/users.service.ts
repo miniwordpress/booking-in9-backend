@@ -1,7 +1,7 @@
 import { BadRequestException, Logger, HttpStatus, Injectable, InternalServerErrorException, NotFoundException, Req, Res, UnauthorizedException, HttpException } from '@nestjs/common'
 import { Response, Request } from 'express'
 import { InjectRepository } from '@nestjs/typeorm'
-import { Repository } from 'typeorm'
+import { Not, Repository } from 'typeorm'
 import { Users } from '../entity/users'
 import { CreateUserRequest } from '../dto/models/request/create.user.request'
 import encryptedPassword from '../utils/encrypted.password'
@@ -17,6 +17,7 @@ import { TokenType } from 'src/enum/token.type'
 import ForgotTemplate from 'src/mailer/forgot.template'
 import { ResetPasswordRequest } from 'src/dto/models/request/reset.password.request'
 import * as bcrypt from 'bcrypt'
+import { UsersResponse } from 'src/dto/response/users-response'
 
 
 @Injectable()
@@ -89,7 +90,7 @@ export class UsersService {
           const { user } = findToken
           user.status = UsersStatus.ACTIVE
           this.usersRepository.update(findToken.user.id, user)
-          this.tokenRepository.delete(findToken.id)
+          this.authService.deleteToken(user)
         } else {
           throw new BadRequestException("Token expire.")
         }
@@ -105,21 +106,34 @@ export class UsersService {
     }
   }
 
-  async getAllUsers(): Promise<Users[]> {
+  async getAllUsers(): Promise<UsersResponse[]> {
     try {
-      return await this.usersRepository.find()
+      const users = await this.usersRepository.find({ where: { role: Not(UsersRole.ADMIN) } })
+      return users.map(user => user.toMapperUser())
     } catch (error) {
-      throw error
+      throw new HttpException(
+        error.message || "Internal Server Error",
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR
+      )
     }
   }
 
-  async getUser(id: number): Promise<Users | null> {
+  async getUser(id: number): Promise<UsersResponse | null> {
     try {
-      return await this.usersRepository.findOneBy({ id })
+      const user = await this.usersRepository.findOneBy({ id })
+
+      if (!user) {
+        throw new HttpException('User not found', HttpStatus.NOT_FOUND)
+      }
+
+      return user.toMapperUserDetail()
     } catch (error) {
-      throw error
+      const errorMessage = error.message || 'Internal Server Error'
+      const errorStatus = error.status || HttpStatus.INTERNAL_SERVER_ERROR
+      throw new HttpException(errorMessage, errorStatus)
     }
   }
+
 
   async updateUser(
     id: number,
@@ -157,7 +171,7 @@ export class UsersService {
         throw new Error('User account not found')
       }
 
-      await this.tokenRepository.delete({ user: userAccount })
+      await this.authService.deleteToken(userAccount)
       await this.usersRepository.delete(id.toString())
     } catch (error) {
       throw error
@@ -166,18 +180,18 @@ export class UsersService {
 
   async forgotPassword(email: string, lang: string): Promise<string> {
     try {
-      const userAccount = await this.usersRepository.findOne({ where: { email }, relations: ['token'] })
-      if (!userAccount) {
+      const user = await this.usersRepository.findOne({ where: { email }, relations: ['token'] })
+      if (!user) {
         throw new NotFoundException("Not found account")
       }
-      if (userAccount.status != UsersStatus.ACTIVE) {
+      if (user.status != UsersStatus.ACTIVE) {
         throw new UnauthorizedException("User are not active")
       }
-      if (userAccount.token) {
-        await this.tokenRepository.delete({ user: userAccount })
+      if (user.token) {
+        await this.authService.deleteToken(user)
       }
 
-      const respToken = await this.authService.generateTokenResetPassword(userAccount)
+      const respToken = await this.authService.generateTokenResetPassword(user)
       await this.mailerService.sendMail({
         to: email,
         subject: lang == "th" ? "IN.9.CO – เปลี่ยนรหัสผ่าน" : "IN.9.CO – Reset password",
@@ -193,7 +207,7 @@ export class UsersService {
   }
 
   async resetPassword(resetPasswordRequest: ResetPasswordRequest): Promise<string> {
-    const { token, oldPassword, newPassword } = resetPasswordRequest
+    const { token, newPassword } = resetPasswordRequest
     try {
       this.authService.verifyToken(token)
       const findToken = await this.tokenRepository.findOne({
@@ -205,12 +219,9 @@ export class UsersService {
       }
       if (findToken.expire_at.getTime() > new Date().getTime()) {
         const { user } = findToken
-        if (!await bcrypt.compare(oldPassword, user.password)) {
-          throw new BadRequestException("Wrong old password.")
-        }
         user.password = encryptedPassword(newPassword)
         this.usersRepository.update(findToken.user.id, user)
-        this.tokenRepository.delete(findToken.id)
+        this.authService.deleteToken(user)
       } else {
         throw new BadRequestException("Token expire.")
       }

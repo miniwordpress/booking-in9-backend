@@ -10,7 +10,12 @@ import { jwtConstants } from './constants'
 import { Request } from 'express'
 import { SetMetadata } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
-import { Userpayload } from 'src/dto/models/userPayload'
+import { UserContext } from 'src/dto/models/user-context'
+import { TokenType } from 'src/enum/token.type'
+import { InjectRepository } from '@nestjs/typeorm'
+import { Users } from 'src/entity/users'
+import { Repository } from 'typeorm'
+import { TokenPayload } from 'src/dto/models/token-payload'
 export const IS_PUBLIC_KEY = 'isPublic'
 export const Public = () => SetMetadata(IS_PUBLIC_KEY, true)
 
@@ -18,7 +23,9 @@ export const Public = () => SetMetadata(IS_PUBLIC_KEY, true)
 export class AuthGuard implements CanActivate {
   constructor(
     private jwtService: JwtService,
-    private reflector: Reflector
+    private reflector: Reflector,
+    @InjectRepository(Users)
+    private readonly userRepository: Repository<Users>
   ) { }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -36,12 +43,23 @@ export class AuthGuard implements CanActivate {
       throw new UnauthorizedException()
     }
     try {
-      const payload: { user: Userpayload } = await this.jwtService.verifyAsync(token, {
+      const payload = await this.jwtService.verifyAsync<TokenPayload>(token, {
         secret: jwtConstants.secret,
       })
-      request.user = payload.user
-    } catch {
-      throw new UnauthorizedException()
+      const user = await this.userRepository.findOne(
+        { where: { id: payload.id }, relations: ['token'] }
+      )
+      if (!user.token || payload.tokenType !== TokenType.ACCESS_TOKEN) {
+        throw new UnauthorizedException()
+      }
+      request.user = {
+        id: payload.id,
+        email: user.email,
+        role: user.role,
+        tokenType: payload.tokenType
+      } as UserContext
+    } catch (error) {
+      throw new UnauthorizedException('Invalid or expired token')
     }
     return true
   }
