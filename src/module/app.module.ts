@@ -51,6 +51,7 @@ import { LoggerMiddleware } from 'src/logger/logger.middleware'
         synchronize: true,
       }),
     }),
+    TypeOrmModule.forFeature([Users]),
     JwtModule.registerAsync({
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
@@ -72,7 +73,7 @@ import { LoggerMiddleware } from 'src/logger/logger.middleware'
       provide: APP_GUARD,
       useClass: AuthGuard,
     },
-    AppService
+    AppService,
   ],
 })
 export class AppModule implements NestModule {

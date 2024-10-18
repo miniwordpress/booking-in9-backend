@@ -8,8 +8,6 @@ export class ResetPasswordRequest {
   @IsNotEmpty()
   confirmPassword: string
   @IsNotEmpty()
-  oldPassword: string
-  @IsNotEmpty()
   @IsJWT()
   token: string
 }

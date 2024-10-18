@@ -1,4 +1,4 @@
-import { Controller, Post, HttpStatus, Body, Res, Req, Headers } from '@nestjs/common'
+import { Controller, Post, HttpStatus, Body, Res, Req, Headers, Get, ForbiddenException, Param, UseInterceptors, BadRequestException } from '@nestjs/common'
 import { Response, Request } from 'express'
 import { UsersService } from '../service/users.service'
 import { CreateUserRequest } from '../dto/models/request/create.user.request'
@@ -8,6 +8,10 @@ import { Public } from 'src/auth/auth.guard'
 import { ForgotPasswordRequest } from 'src/dto/models/request/forgot.password.request'
 import { ResetPasswordRequest } from 'src/dto/models/request/reset.password.request'
 import { Language } from 'src/utils/language.decorator'
+import { UserContext } from 'src/dto/models/user-context'
+import { User } from 'src/utils/user.decorator'
+import { UsersRole } from 'src/enum/users-role'
+import { AdminRoleInterceptor } from 'src/auth/role.interceptor'
 
 @Controller('users')
 export class UsersController {
@@ -73,101 +77,37 @@ export class UsersController {
     ))
   }
 
-  // @Get('getUsersAccount')
-  // async getAllUsers(): Promise<UsersAccountResponse> {
-  //   var response = new UsersAccountResponse()
+  @Get()
+  @UseInterceptors(AdminRoleInterceptor)
+  async getAllUser(
+    @Res() res: Response<BaseResponse>
+  ) {
+    return res.status(HttpStatus.OK).json(new BaseResponse(
+      "0000",
+      null,
+      await this.userService.getAllUsers(),
+      null
+    ))
+  }
 
-  //   try {
-  //     const userData = await this.userService.getAllUsers()
-  //     let usersAccount = []
-
-  //     userData.map((data) => {
-  //       let userAccountModel = new UserAccountModel()
-  //       userAccountModel.id = data.id
-  //       userAccountModel.firstName = data.first_name
-  //       userAccountModel.lastName = data.last_name
-  //       userAccountModel.email = data.email
-  //       userAccountModel.password = data.password
-  //       userAccountModel.tel = data.tel
-  //       userAccountModel.idNumber = data.id_number
-  //       userAccountModel.img = data.img
-  //       userAccountModel.status = data.status
-  //       userAccountModel.role = data.role
-  //       userAccountModel.description = data.description
-  //       userAccountModel.createdAt = data.created_at
-  //       userAccountModel.updatedAt = data.updated_at
-  //       usersAccount.push(userAccountModel)
-  //     })
-
-  //     response.code = HttpStatus.OK.toString()
-  //     response.data = usersAccount
-  //     response.message = "Get all users success"
-  //     response.cause = null
-  //     return response
-  //   } catch (error) {
-  //     response.code = error.code
-  //     response.data = null
-  //     response.message = error.message
-  //     response.cause = error.cause
-  //     response.cause = error.cause ?? null
-
-  //     return response
-  //   }
-  // }
-
-  // @Get('getUserAccount')
-  // async findOneUser(@Query('id') id: number): Promise<UsersAccountResponse> {
-  //   var response = new UsersAccountResponse()
-
-  //   if (id == null || id == undefined) {
-  //     response.code = HttpStatus.BAD_REQUEST.toString()
-  //     response.data = null
-  //     response.message = `id null or undefined`
-  //     response.cause = null
-
-  //     throw new HttpException(response, HttpStatus.BAD_REQUEST)
-  //   }
-
-  //   try {
-  //     const userData = await this.userService.getUser(BigInt(id))
-
-  //     if (userData == null || userData == undefined) {
-  //       response.code = HttpStatus.OK.toString()
-  //       response.data = null
-  //       response.message = `User id:${id} not found`
-  //       response.cause = null
-  //       return response
-  //     } else {
-  //       let userAccountModel = new UserAccountModel()
-  //       userAccountModel.id = userData.id
-  //       userAccountModel.firstName = userData.first_name
-  //       userAccountModel.lastName = userData.last_name
-  //       userAccountModel.email = userData.email
-  //       userAccountModel.password = userData.password
-  //       userAccountModel.tel = userData.tel
-  //       userAccountModel.idNumber = userData.id_number
-  //       userAccountModel.img = userData.img
-  //       userAccountModel.status = userData.status
-  //       userAccountModel.role = userData.role
-  //       userAccountModel.description = userData.description
-  //       userAccountModel.createdAt = userData.created_at
-  //       userAccountModel.updatedAt = userData.updated_at
-
-  //       response.code = HttpStatus.OK.toString()
-  //       response.data = [userAccountModel]
-  //       response.message = `Get user id:${id} success`
-  //       response.cause = null
-  //       return response
-  //     }
-  //   } catch (error) {
-  //     response.code = error.code
-  //     response.data = null
-  //     response.message = error.message
-  //     response.cause = error.cause ?? null
-
-  //     return response
-  //   }
-  // }
+  @Get(':id')
+  @UseInterceptors(AdminRoleInterceptor)
+  async getUser(
+    @Param('id') id: number,
+    @User() user: UserContext,
+    @Language() lang: string,
+    @Res() res: Response<BaseResponse>
+  ) {
+    if (id == user.id) {
+      throw new BadRequestException("Can't view yourself")
+    }
+    return res.status(HttpStatus.OK).json(new BaseResponse(
+      "0000",
+      null,
+      await this.userService.getUser(id),
+      null
+    ))
+  }
 
   // @Patch('updateUserAccount')
   // async updateUser(@Body() updateUserDto: UpdateUserRequest): Promise<UsersAccountResponse> {
