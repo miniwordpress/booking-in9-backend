@@ -1,10 +1,10 @@
-import { Entity, Column, PrimaryGeneratedColumn, OneToOne, JoinColumn } from 'typeorm'
+import { Entity, Column, PrimaryGeneratedColumn, OneToOne, JoinColumn, UpdateDateColumn, CreateDateColumn } from 'typeorm'
 import { Token } from './token'
 import { IDNumberType } from 'src/enum/id.number.type'
 import { UsersRole } from "src/enum/users-role"
 import { UsersStatus } from "src/enum/users-status"
-import { UsersResponse } from 'src/dto/response/users-response'
-import { UserDeailResponse } from 'src/dto/response/user-detail-response'
+import { UsersResponse } from 'src/dto/response/users.response'
+import { UserDeailResponse } from 'src/dto/response/user-detail.response'
 
 @Entity()
 export class Users {
@@ -17,13 +17,13 @@ export class Users {
   @Column({ length: 100 })
   last_name: string
 
-  @Column({ length: 100 })
+  @Column({ length: 100, unique: true })
   email: string
 
   @Column({ type: 'text' })
   password: string
 
-  @Column({ length: 20 })
+  @Column({ length: 30 })
   tel: string
 
   @Column({ length: 50 })
@@ -44,10 +44,10 @@ export class Users {
   @Column({ nullable: true })
   description: string
 
-  @Column()
+  @CreateDateColumn({ type: 'timestamp' })
   created_at: Date
 
-  @Column({ nullable: true })
+  @UpdateDateColumn({ type: 'timestamp' })
   updated_at: Date
 
   @OneToOne(() => Token, (token) => token.user, { nullable: true })
