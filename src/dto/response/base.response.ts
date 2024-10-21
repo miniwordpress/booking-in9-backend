@@ -1,14 +1,6 @@
-export class BaseResponse {
-  code: string
-  data?: any
+export interface BaseResponse<T = any> {
+  code?: string | "0000"
+  data: T | null
+  cause?: any | null
   message: string
-  cause?: any
-
-  constructor(code: string, message: string, data?: any, cause?: any) {
-    this.code = code
-    this.data = data
-    this.message = message
-    this.cause = cause
-  }
-
 }

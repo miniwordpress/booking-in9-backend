@@ -18,7 +18,6 @@ export class HttpExceptionFilter implements ExceptionFilter {
 
     const baseException = exception as BaseException
     const cause = baseException.cause || null
-
     const baseResponse: BaseResponse = {
       code: baseException.errorCode || 'ERR000',
       data: null,
