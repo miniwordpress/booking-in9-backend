@@ -5,6 +5,7 @@ import { UsersRole } from "src/enum/users-role"
 import { UsersStatus } from "src/enum/users-status"
 import { UsersResponse } from 'src/dto/response/users.response'
 import { UserDeailResponse } from 'src/dto/response/user-detail.response'
+import { UpdateProfileResponse } from 'src/dto/response/update-profile.response'
 
 @Entity()
 export class Users {
@@ -77,4 +78,17 @@ export class Users {
       description: this.description
     }
   }
+
+  toMapperProfile(): UpdateProfileResponse {
+    return {
+      firstName: this.first_name,
+      lastName: this.last_name,
+      tel: this.tel,
+      idNumber: this.id_number,
+      idNumberType: this.id_number_type,
+      img: this.img,
+      description: this.description
+    }
+  }
+  
 }

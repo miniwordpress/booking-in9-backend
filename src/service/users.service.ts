@@ -2,9 +2,9 @@ import { BadRequestException, Logger, HttpStatus, Injectable, InternalServerErro
 import { InjectRepository } from '@nestjs/typeorm'
 import { Not, Repository } from 'typeorm'
 import { Users } from '../entity/users'
-import { CreateUserRequest } from '../dto/models/request/create-user.request'
+import { CreateUserRequest } from '../dto/request/create-user.request'
 import encryptedPassword from '../utils/encrypted.password'
-import { UpdateUserRequest } from 'src/dto/models/request/update-user.request'
+import { UpdateUserRequest } from 'src/dto/request/update-user.request'
 import { Token } from 'src/entity/token'
 import { AuthService } from './auth.service'
 import { MailerService } from '@nestjs-modules/mailer'
@@ -13,7 +13,7 @@ import { UsersStatus } from 'src/enum/users-status'
 import { UsersRole } from 'src/enum/users-role'
 import { TokenType } from 'src/enum/token.type'
 import ForgotTemplate from 'src/mailer/forgot.template'
-import { ResetPasswordRequest } from 'src/dto/models/request/reset-password.request'
+import { ResetPasswordRequest } from 'src/dto/request/reset-password.request'
 import { UsersResponse } from 'src/dto/response/users.response'
 import { UserDeailResponse } from 'src/dto/response/user-detail.response'
 import validator from 'validator'
@@ -22,6 +22,9 @@ import { UserNotFoundException } from 'src/exception/user-not-found.exception'
 import { TokenExpireException } from 'src/exception/token-expire.exception'
 import { EmailExistingException } from 'src/exception/email-already.exception'
 import { UserNotActiveException } from 'src/exception/user-not-active.exception'
+import { UpdateProfileRequest } from 'src/dto/request/update-profile.request'
+import { UpdateProfileResponse } from 'src/dto/response/update-profile.response'
+import { ProfileResponse } from 'src/dto/response/profile.response'
 
 @Injectable()
 export class UsersService {
@@ -69,7 +72,7 @@ export class UsersService {
           )
       }
     }
-    return "Success"
+    return "Create user success"
   }
 
   async verifyUsers(token: string): Promise<string> {
@@ -93,10 +96,7 @@ export class UsersService {
       }
       return "verify success"
     } catch (error) {
-      throw new HttpException(
-        error.message || 'Internal Server Error',
-        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
-      )
+      throw error
     }
   }
 
@@ -115,17 +115,49 @@ export class UsersService {
   async getUser(id: number): Promise<UsersResponse | null> {
     try {
       const user = await this.usersRepository.findOneBy({ id })
-
       if (!user) {
         throw new UserNotFoundException()
       }
-
       return user.toMapperUserDetail()
     } catch (error) {
-      throw new HttpException(
-        error.message || 'Internal Server Error',
-        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
-      )
+      throw error
+    }
+  }
+
+  async getProfile(id: number): Promise<ProfileResponse> {
+    try {
+      const user = await this.usersRepository.findOneBy({ id })
+      if (!user) {
+        throw new UserNotFoundException()
+      }
+      return user.toMapperUserDetail()
+    } catch (error) {
+      throw error
+    }
+  }
+
+  async updateProfile(id: number, updateProfileRequest: UpdateProfileRequest): Promise<UpdateProfileResponse> {
+    try {
+      const user = await this.usersRepository.findOneBy({ id })
+      if (!user) {
+        throw new UserNotFoundException()
+      }
+      user.first_name = updateProfileRequest.firstName
+      user.last_name = updateProfileRequest.lastName
+      user.tel = updateProfileRequest.tel
+      user.img = updateProfileRequest.img
+      user.id_number = updateProfileRequest.idNumber
+      user.id_number_type = updateProfileRequest.idNumberType
+      user.description = updateProfileRequest.description
+      const updatedUser = await this.usersRepository.save(user)
+      return updatedUser.toMapperProfile()
+    } catch (error) {
+      switch (error?.code) {
+        case '23505': // unique statement
+          throw new EmailExistingException()
+        default:
+          throw error
+      }
     }
   }
 
@@ -133,7 +165,7 @@ export class UsersService {
   async updateUser(
     id: number,
     updateUserRequest: UpdateUserRequest,
-  ): Promise<UserDeailResponse | null> {
+  ): Promise<UserDeailResponse> {
     try {
       const user = await this.usersRepository.findOneBy({ id })
 
@@ -157,9 +189,7 @@ export class UsersService {
         case '23505': // unique statement
           throw new EmailExistingException()
         default:
-          throw new InternalServerErrorException(
-            error?.message || 'An unexpected error occurred',
-          )
+          throw error
       }
     }
   }
@@ -196,10 +226,7 @@ export class UsersService {
       })
       return "send email success"
     } catch (error) {
-      throw new HttpException(
-        error.message || 'Internal Server Error',
-        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
-      )
+      throw error
     }
   }
 
@@ -226,10 +253,7 @@ export class UsersService {
         throw new TokenExpireException()
       }
     } catch (error) {
-      throw new HttpException(
-        error.message || 'Internal Server Error',
-        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
-      )
+      throw error
     }
     return "Success"
   }

@@ -27,17 +27,20 @@ services:
     volumes:
       - pgadmin-data:/var/lib/pgadmin
   mailpit:
-    image: "axllent/mailpit:v1.6"
-    container_name: ptn-mailpit
+    image: axllent/mailpit
+    container_name: client-mailpit
     ports:
       - "1025:1025"
       - "8025:8025"
     networks:
       - in-nine
+    volumes:
+      - mailpit-data:/data
 
 volumes:
   local_pgdata:
   pgadmin-data:
+  mailpit-data:
 
 networks:
   in-nine:
