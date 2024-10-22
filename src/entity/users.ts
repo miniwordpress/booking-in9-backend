@@ -1,6 +1,6 @@
 import { Entity, Column, PrimaryGeneratedColumn, OneToOne, JoinColumn, UpdateDateColumn, CreateDateColumn } from 'typeorm'
 import { Token } from './token'
-import { IDNumberType } from 'src/enum/id.number.type'
+import { IDNumberType } from 'src/enum/id-number-type'
 import { UsersRole } from "src/enum/users-role"
 import { UsersStatus } from "src/enum/users-status"
 import { UsersResponse } from 'src/dto/response/users.response'

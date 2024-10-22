@@ -1,4 +1,4 @@
-import { TokenType } from "src/enum/token.type";
+import { TokenType } from "src/enum/token-type";
 
 export class TokenModel {
     userId: number;

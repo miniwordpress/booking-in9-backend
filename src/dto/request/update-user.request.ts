@@ -1,5 +1,5 @@
 import { IsEmail, IsEnum, IsNotEmpty, MaxLength, MinLength } from "class-validator"
-import { IDNumberType } from "src/enum/id.number.type"
+import { IDNumberType } from "src/enum/id-number-type"
 
 export class UpdateUserRequest {
   @IsNotEmpty()

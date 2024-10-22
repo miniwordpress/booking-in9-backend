@@ -1,4 +1,4 @@
-import { IDNumberType } from "src/enum/id.number.type"
+import { IDNumberType } from "src/enum/id-number-type"
 
 export class UpdateProfileResponse {
   firstName: string

@@ -1,6 +1,6 @@
 import { Entity, Column, PrimaryGeneratedColumn, OneToOne, JoinColumn } from 'typeorm'
 import { Users } from './users'
-import { TokenType } from '../enum/token.type'
+import { TokenType } from '../enum/token-type'
 
 @Entity()
 export class Token {
