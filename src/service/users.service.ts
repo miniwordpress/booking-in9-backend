@@ -1,7 +1,7 @@
 import { BadRequestException, Logger, HttpStatus, Injectable, InternalServerErrorException, NotFoundException, UnauthorizedException, HttpException, ConflictException } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Not, Repository } from 'typeorm'
-import { Users } from '../entity/users'
+import { User } from '../entity/user'
 import { CreateUserRequest } from '../dto/request/create-user.request'
 import encryptedPassword from '../utils/encrypted.password'
 import { UpdateUserRequest } from 'src/dto/request/update-user.request'
@@ -31,8 +31,8 @@ export class UsersService {
   private readonly logger = new Logger(UsersService.name)
   constructor(
     private readonly authService: AuthService,
-    @InjectRepository(Users)
-    private usersRepository: Repository<Users>,
+    @InjectRepository(User)
+    private usersRepository: Repository<User>,
     @InjectRepository(Token)
     private tokenRepository: Repository<Token>,
     private readonly mailerService: MailerService
@@ -54,7 +54,7 @@ export class UsersService {
         role: UsersRole.MERCHANT,
         description: description,
         password: encryptedPassword(passwordGenerated),
-      } as Users
+      } as User
 
       const user = this.usersRepository.create(tmpUser)
       const saveUserData = await this.usersRepository.save(user)

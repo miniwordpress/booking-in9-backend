@@ -1,6 +1,6 @@
 import { UsersRole } from "src/enum/users-role"
 import { UsersStatus } from "src/enum/users-status"
-import { Users } from "src/entity/users"
+import { User } from "src/entity/user"
 
 export class SignInResponse {
   id: number
@@ -15,7 +15,7 @@ export class SignInResponse {
   description: string
   accessToken: string
 
-  constructor(user: Users,accessToken: string) {
+  constructor(user: User,accessToken: string) {
     this.id = user.id
     this.firstName = user.first_name
     this.lastName = user.last_name

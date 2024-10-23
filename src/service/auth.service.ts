@@ -3,7 +3,7 @@ import { JwtService } from '@nestjs/jwt'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Token } from '../entity/token'
 import { Repository } from 'typeorm'
-import { Users } from '../entity/users'
+import { User } from '../entity/user'
 import { TokenType } from '../enum/token-type'
 import * as bcrypt from 'bcrypt'
 import { SignInResponse } from 'src/dto/response/sign-in.response'
@@ -19,8 +19,8 @@ export class AuthService {
   constructor(
     @InjectRepository(Token)
     private tokenRepository: Repository<Token>,
-    @InjectRepository(Users)
-    private userRepository: Repository<Users>
+    @InjectRepository(User)
+    private userRepository: Repository<User>
   ) { }
 
   @Inject(JwtService)
@@ -41,7 +41,7 @@ export class AuthService {
     return this.jwtService.decode(token)
   }
 
-  async generateTokenVerifyUser(user: Users): Promise<string> {
+  async generateTokenVerifyUser(user: User): Promise<string> {
     const payload = {
       id: user.id,
       tokenType: TokenType.VERIFY_REGISTER
@@ -57,7 +57,7 @@ export class AuthService {
     return token.token
   }
 
-  async generateTokenResetPassword(user: Users): Promise<string> {
+  async generateTokenResetPassword(user: User): Promise<string> {
     const payload = {
       id: user.id,
       tokenType: TokenType.RESET_PASSWORD
@@ -117,7 +117,7 @@ export class AuthService {
     return "Success"
   }
 
-  async deleteToken(user: Users): Promise<void> {
+  async deleteToken(user: User): Promise<void> {
     try {
       await this.tokenRepository.delete({
         user: {

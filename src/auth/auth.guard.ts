@@ -13,7 +13,7 @@ import { Reflector } from '@nestjs/core'
 import { UserContext } from 'src/dto/models/user-context'
 import { TokenType } from 'src/enum/token-type'
 import { InjectRepository } from '@nestjs/typeorm'
-import { Users } from 'src/entity/users'
+import { User } from 'src/entity/user'
 import { Repository } from 'typeorm'
 import { TokenPayload } from 'src/dto/models/token-payload'
 export const IS_PUBLIC_KEY = 'isPublic'
@@ -24,8 +24,8 @@ export class AuthGuard implements CanActivate {
   constructor(
     private jwtService: JwtService,
     private reflector: Reflector,
-    @InjectRepository(Users)
-    private readonly userRepository: Repository<Users>
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>
   ) { }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {

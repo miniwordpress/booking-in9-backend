@@ -8,7 +8,7 @@ import { HttpModule } from '@nestjs/axios'
 import { UsersModule } from './users.module'
 import { AuthModule } from './auth.module'
 import { TypeOrmModule } from '@nestjs/typeorm'
-import { Users } from 'src/entity/users'
+import { User } from 'src/entity/user'
 import { Token } from 'src/entity/token'
 import { MailerModule } from '@nestjs-modules/mailer'
 import { JwtModule } from '@nestjs/jwt'
@@ -16,6 +16,8 @@ import { jwtConstants } from 'src/auth/constants'
 import { APP_GUARD } from '@nestjs/core'
 import { AuthGuard } from 'src/auth/auth.guard'
 import { LoggerMiddleware } from 'src/logger/logger.middleware'
+import { Accommodation } from 'src/entity/accommodation'
+import { Room } from 'src/entity/room'
 
 @Module({
   imports: [
@@ -47,11 +49,11 @@ import { LoggerMiddleware } from 'src/logger/logger.middleware'
         username: configService.get<string>('DB_USERNAME'),
         password: configService.get<string>('DB_PASSWORD'),
         database: configService.get<string>('DB_DATABASE'),
-        entities: [Users, Token],
+        entities: [User, Token, Accommodation, Room],
         synchronize: true,
       }),
     }),
-    TypeOrmModule.forFeature([Users]),
+    TypeOrmModule.forFeature([User]),
     JwtModule.registerAsync({
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({

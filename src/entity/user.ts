@@ -8,7 +8,7 @@ import { UserDeailResponse } from 'src/dto/response/user-detail.response'
 import { UpdateProfileResponse } from 'src/dto/response/update-profile.response'
 
 @Entity()
-export class Users {
+export class User {
   @PrimaryGeneratedColumn()
   id: number
 

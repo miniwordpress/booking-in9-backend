@@ -1,5 +1,5 @@
 import { Entity, Column, PrimaryGeneratedColumn, OneToOne, JoinColumn, CreateDateColumn, BeforeInsert } from 'typeorm'
-import { Users } from './users'
+import { User } from './user'
 import { TokenType } from '../enum/token-type'
 
 @Entity()
@@ -10,9 +10,9 @@ export class Token {
   @Column({ type: 'text', nullable: false })
   token: string
 
-  @OneToOne(() => Users, (user) => user.token, { onDelete: 'CASCADE' })
+  @OneToOne(() => User, (user) => user.token, { onDelete: 'CASCADE' })
   @JoinColumn({ name: "user_id" })
-  user: Users
+  user: User
 
   @Column({ length: 100, nullable: false, enum: TokenType })
   type: TokenType
