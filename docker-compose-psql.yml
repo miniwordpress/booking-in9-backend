@@ -36,11 +36,19 @@ services:
       - in-nine
     volumes:
       - mailpit-data:/data
+    environment:
+      MP_MAX_MESSAGES: 5000
+      MP_DATABASE: /data/mailpit.db
+      MP_SMTP_AUTH_ACCEPT_ANY: 1
+      MP_SMTP_AUTH_ALLOW_INSECURE: 1
 
 volumes:
   local_pgdata:
+    name: "local_pgdata"
   pgadmin-data:
+    name: "pgadmin-data"
   mailpit-data:
+    name: "mailpit-data"
 
 networks:
   in-nine:
