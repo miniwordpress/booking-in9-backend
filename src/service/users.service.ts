@@ -142,6 +142,9 @@ export class UsersService {
       if (!user) {
         throw new UserNotFoundException()
       }
+      if (user.status != UsersStatus.ACTIVE) {
+        throw new UserNotActiveException()
+      }
       user.first_name = updateProfileRequest.firstName
       user.last_name = updateProfileRequest.lastName
       user.tel = updateProfileRequest.tel
