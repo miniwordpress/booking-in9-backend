@@ -1,4 +1,4 @@
-import { Entity, Column, PrimaryGeneratedColumn, OneToOne, JoinColumn, UpdateDateColumn, CreateDateColumn } from 'typeorm'
+import { Entity, Column, PrimaryGeneratedColumn, OneToOne, JoinColumn, UpdateDateColumn, CreateDateColumn, BeforeInsert, BeforeUpdate } from 'typeorm'
 import { Token } from './token'
 import { IDNumberType } from 'src/enum/id-number-type'
 import { UsersRole } from "src/enum/users-role"
@@ -53,6 +53,22 @@ export class Users {
 
   @OneToOne(() => Token, (token) => token.user, { nullable: true })
   token?: Token
+
+  @BeforeInsert()
+  setCreatedAt() {
+    this.created_at = this.convertToTimeZone(new Date(), 7)
+  }
+
+  @BeforeUpdate()
+  setUpdatedAt() {
+    this.updated_at = this.convertToTimeZone(new Date(), 7)
+  }
+
+  private convertToTimeZone(date: Date, offset: number): Date {
+    const utcDate = date.getTime() + (date.getTimezoneOffset() * 60000)
+    const newDate = new Date(utcDate + (3600000 * offset))
+    return newDate
+  }
 
   toMapperUser(): UsersResponse {
     return {

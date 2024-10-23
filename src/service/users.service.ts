@@ -42,7 +42,7 @@ export class UsersService {
     const { firstName, lastName, email, tel, idNumber, idNumberType, img, description } = createUserRequest
     try {
       const passwordGenerated = this.generatePassword()
-      const user = {
+      const tmpUser = {
         first_name: firstName,
         last_name: lastName,
         email: email,
@@ -55,6 +55,8 @@ export class UsersService {
         description: description,
         password: encryptedPassword(passwordGenerated),
       } as Users
+
+      const user = this.usersRepository.create(tmpUser)
       const saveUserData = await this.usersRepository.save(user)
       const respToken = await this.authService.generateTokenVerifyUser(saveUserData)
       await this.mailerService.sendMail({

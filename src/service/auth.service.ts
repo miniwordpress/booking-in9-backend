@@ -46,14 +46,13 @@ export class AuthService {
       id: user.id,
       tokenType: TokenType.VERIFY_REGISTER
     }
-    const token = new Token()
-    token.token = this.jwtService.sign(payload, { expiresIn: '2h' })
-    token.user = user
-    token.type = TokenType.VERIFY_REGISTER
-    token.expire_at = new Date(Date.now() + 60 * 60 * 1000)
-    token.refresh_time = new Date(Date.now() + (60 * 60 * 1000) * 2)
-    token.created_at = new Date()
-    token.used_at = new Date()
+    const tmpToken = new Token()
+    tmpToken.token = this.jwtService.sign(payload, { expiresIn: '2h' })
+    tmpToken.user = user
+    tmpToken.type = TokenType.VERIFY_REGISTER
+    tmpToken.expire_at = new Date(Date.now() + 60 * 60 * 1000)
+    tmpToken.refresh_time = new Date(Date.now() + (60 * 60 * 1000) * 2)
+    const token = this.tokenRepository.create(tmpToken)
     await this.tokenRepository.save(token)
     return token.token
   }
@@ -63,16 +62,15 @@ export class AuthService {
       id: user.id,
       tokenType: TokenType.RESET_PASSWORD
     }
-    const token = new Token()
-    token.token = this.jwtService.sign(payload, { expiresIn: '2h' })
-    token.user = user
-    token.type = TokenType.RESET_PASSWORD
-    token.expire_at = new Date(Date.now() + 60 * 60 * 1000)
-    token.refresh_time = new Date(Date.now() + (60 * 60 * 1000) * 2)
-    token.created_at = new Date()
-    token.used_at = new Date()
+    const tmpToken = new Token()
+    tmpToken.token = this.jwtService.sign(payload, { expiresIn: '2h' })
+    tmpToken.user = user
+    tmpToken.type = TokenType.RESET_PASSWORD
+    tmpToken.expire_at = new Date(Date.now() + 60 * 60 * 1000)
+    tmpToken.refresh_time = new Date(Date.now() + (60 * 60 * 1000) * 2)
+    const token = this.tokenRepository.create(tmpToken)
     await this.tokenRepository.save(token)
-    return token.token
+    return tmpToken.token
   }
 
   async signIn(
@@ -102,7 +100,6 @@ export class AuthService {
         expire_at: new Date(Date.now() + 60 * 60 * 1000),
         refresh_time: new Date(Date.now() + (60 * 60 * 1000) * 2),
         created_at: new Date(),
-        used_at: new Date(),
       })
       return new SignInResponse(user, accessToken)
     } catch (error) {

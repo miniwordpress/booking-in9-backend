@@ -1,4 +1,4 @@
-import { Entity, Column, PrimaryGeneratedColumn, OneToOne, JoinColumn } from 'typeorm'
+import { Entity, Column, PrimaryGeneratedColumn, OneToOne, JoinColumn, CreateDateColumn, BeforeInsert } from 'typeorm'
 import { Users } from './users'
 import { TokenType } from '../enum/token-type'
 
@@ -23,9 +23,18 @@ export class Token {
   @Column({ nullable: true })
   refresh_time: Date
 
-  @Column({ nullable: false })
+  @CreateDateColumn({ type: 'timestamp' })
   created_at: Date
 
-  @Column({ nullable: false })
-  used_at: Date
+  @BeforeInsert()
+  setCreatedAt() {
+    this.created_at = this.convertToTimeZone(new Date(), 7)
+  }
+
+  private convertToTimeZone(date: Date, offset: number): Date {
+    const utcDate = date.getTime() + (date.getTimezoneOffset() * 60000)
+    const newDate = new Date(utcDate + (3600000 * offset))
+    return newDate
+  }
+
 }
