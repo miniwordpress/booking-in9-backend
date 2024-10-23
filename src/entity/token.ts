@@ -14,7 +14,7 @@ export class Token {
   @JoinColumn({ name: "user_id" })
   user: Users
 
-  @Column({ length: 100, nullable: false })
+  @Column({ length: 100, nullable: false, enum: TokenType })
   type: TokenType
 
   @Column({ nullable: false })

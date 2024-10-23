@@ -1,0 +1,7 @@
+export enum AccommodationType {
+  HOUSE = "HOUSE",
+  HOTEL = "HOTEL",
+  APARTMENT = "APARTMENT",
+  TOWNHOUSE = "TOWNHOUSE",
+  CONDOMINIUM = "CONDOMINIUM",
+}

@@ -1,4 +1,4 @@
-import { Entity, Column, PrimaryGeneratedColumn, OneToOne, JoinColumn, UpdateDateColumn, CreateDateColumn, BeforeInsert, BeforeUpdate } from 'typeorm'
+import { Entity, Column, PrimaryGeneratedColumn, OneToOne, UpdateDateColumn, CreateDateColumn, BeforeInsert, BeforeUpdate } from 'typeorm'
 import { Token } from './token'
 import { IDNumberType } from 'src/enum/id-number-type'
 import { UsersRole } from "src/enum/users-role"
@@ -30,7 +30,7 @@ export class Users {
   @Column({ length: 50 })
   id_number: string
 
-  @Column()
+  @Column({ enum: IDNumberType })
   id_number_type: IDNumberType
 
   @Column({ type: 'text', nullable: true })
@@ -57,6 +57,7 @@ export class Users {
   @BeforeInsert()
   setCreatedAt() {
     this.created_at = this.convertToTimeZone(new Date(), 7)
+    this.updated_at = this.convertToTimeZone(new Date(), 7)
   }
 
   @BeforeUpdate()
@@ -106,5 +107,5 @@ export class Users {
       description: this.description
     }
   }
-  
+
 }
