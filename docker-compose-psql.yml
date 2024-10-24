@@ -41,7 +41,36 @@ services:
       MP_DATABASE: /data/mailpit.db
       MP_SMTP_AUTH_ACCEPT_ANY: 1
       MP_SMTP_AUTH_ALLOW_INSECURE: 1
-
+  minio:
+    container_name: in9-minio
+    image: "minio/minio"
+    ports:
+      - "${MINIO_FORWARD_PORT:-9000}:9000"
+      - "${MINIO_CONSOLE_FORWARD_PORT:-8900}:8900"
+    environment:
+      MINIO_ROOT_USER: "${AWS_ACCESS_KEY_ID:-admin}"
+      MINIO_ROOT_PASSWORD: "${AWS_SECRET_ACCESS_KEY:-password}"
+      MINIO_DEFAULT_BUCKETS: "${AWS_BUCKET:-in9-storage}:policy"
+    volumes:
+      - "in9-minio:/data/minio"
+    networks:
+      - in-nine
+    command: 'minio server /data/minio --console-address ":8900"'
+  createbuckets:
+    container_name: in9-createbuckets
+    image: minio/mc
+    depends_on:
+      minio:
+        condition: service_healthy
+    networks:
+      - in-nine
+    entrypoint: >
+      /bin/sh -c "
+      /usr/bin/mc alias set myminio ${AWS_URL} ${AWS_ACCESS_KEY_ID} ${AWS_SECRET_ACCESS_KEY};
+      /usr/bin/mc mb -p myminio/${AWS_BUCKET};
+      /usr/bin/mc policy -p set public myminio/${AWS_BUCKET};
+      exit 0;
+      "
 volumes:
   local_pgdata:
     name: "local_pgdata"
@@ -49,6 +78,8 @@ volumes:
     name: "pgadmin-data"
   mailpit-data:
     name: "mailpit-data"
+  in9-minio:
+    name: "in9-minio"
 
 networks:
   in-nine:
